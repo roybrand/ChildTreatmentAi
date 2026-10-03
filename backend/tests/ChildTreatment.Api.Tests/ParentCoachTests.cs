@@ -35,6 +35,32 @@ public class ParentCoachAgentTests
         Assert.Equal(SafetyTexts.Fallback, outcome.Text);
     }
 
+    [Fact]
+    public async Task A_withheld_reply_is_written_once_more_with_the_reason_and_reviewed_again()
+    {
+        var llm = new FakeLlm();
+        llm.Reviews.Enqueue(FakeLlm.ReviewBlock);
+
+        var outcome = await TestSupport.Agent(llm).RespondAsync(Context, [], "מה לעשות הערב?");
+
+        Assert.Equal(CoachOutcomeKind.Reply, outcome.Kind);
+        Assert.Equal(2, llm.ReviewRequests.Count());
+        var retry = llm.CoachRequests.Last().Messages;
+        Assert.Equal([LlmRole.User, LlmRole.Assistant, LlmRole.User], retry.Select(m => m.Role));
+        Assert.Contains("Medication advice.", retry[^1].Text);
+    }
+
+    [Fact]
+    public async Task A_reply_withheld_twice_gives_the_fallback_and_the_model_is_not_asked_a_third_time()
+    {
+        var llm = new FakeLlm { Review = FakeLlm.ReviewBlock };
+
+        var outcome = await TestSupport.Agent(llm).RespondAsync(Context, [], "מה לעשות הערב?");
+
+        Assert.Equal(CoachOutcomeKind.Fallback, outcome.Kind);
+        Assert.Equal(2, llm.CoachRequests.Count());
+    }
+
     [Theory]
     [InlineData("not json")]
     [InlineData("""{"verdict":"maybe","rules":[],"reason":""}""")]
@@ -66,7 +92,7 @@ public class ParentCoachAgentTests
         var outcome = await TestSupport.Agent(llm).RespondAsync(Context, [], "מה לעשות הערב?");
 
         Assert.Equal(CoachOutcomeKind.Reply, outcome.Kind);
-        Assert.Equal("parent-coach/v1", outcome.PromptVersion);
+        Assert.Equal("parent-coach/v2", outcome.PromptVersion);
         Assert.Equal(2, llm.Requests.Count);
     }
 

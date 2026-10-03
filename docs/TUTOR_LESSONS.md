@@ -1,6 +1,6 @@
 # Tutor lessons
 
-Status: design. This file holds the first learning path and the first prototype lesson for the Tutor. The teaching method is defined in [AGENTS.md](AGENTS.md).
+Status: the prototype lesson below is built in its plain form, set by the Tutor in each child's own world; beauty is one such world, not the only one. The two styles, the read-aloud, and the other lessons are design. This file holds the first learning path and the first prototype lesson for the Tutor. The teaching method is defined in [AGENTS.md](AGENTS.md).
 
 ## First learning path: mathematics foundations
 

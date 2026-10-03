@@ -24,9 +24,24 @@ public sealed class SafetyReviewer(ILlmClient llm, PromptStore prompts, ILogger<
         ["additionalProperties"] = JsonSerializer.SerializeToElement(false),
     };
 
+    /// <summary>How many times an agent may write an answer before the fallback is shown.</summary>
+    public const int MaxAttempts = 2;
+
+    /// <summary>
+    /// The message that asks an agent to write again after its answer was withheld. A withheld answer
+    /// gets one more try with the reviewer's reason, and the new answer is reviewed like the first.
+    /// </summary>
+    public LlmMessage RetryMessage(ReviewResult review) => new(
+        LlmRole.User,
+        prompts.Get("review-retry").Text.Replace(
+            "{reason}",
+            string.IsNullOrWhiteSpace(review.Reason) ? "It did not clearly pass the safety rules." : review.Reason));
+
     public const string ConversationRules = "safety-review";
     /// <summary>Rules for a weekly summary, where the parent's words are a week of log entries.</summary>
     public const string SummaryRules = "summary-review";
+    /// <summary>Rules for lesson wording that a child reads. There is no parent message.</summary>
+    public const string LessonRules = "lesson-review";
 
     /// <param name="context">What the agent was told about the family, so a reported condition is not mistaken for a diagnosis.</param>
     /// <param name="rules">Which review prompt to apply.</param>

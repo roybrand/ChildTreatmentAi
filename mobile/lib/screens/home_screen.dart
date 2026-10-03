@@ -7,6 +7,7 @@ import '../widgets/errors.dart';
 import '../widgets/responsive.dart';
 import 'accommodations_screen.dart';
 import 'coach_screen.dart';
+import 'lesson_screen.dart';
 import 'log_screen.dart';
 import 'profile_screen.dart';
 import 'summary_screen.dart';
@@ -89,6 +90,14 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text(child.nickname),
         actions: [
+          // The lesson is the child's. It opens on its own screen, away from the parent's tabs.
+          IconButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(builder: (_) => LessonScreen(api: api, child: child)),
+            ),
+            tooltip: Strings.lessonOpen,
+            icon: const Icon(Icons.school_outlined),
+          ),
           const CrisisButton(),
           PopupMenuButton<_MenuAction>(
             onSelected: _onMenu,

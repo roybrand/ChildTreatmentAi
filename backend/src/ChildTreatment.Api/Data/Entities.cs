@@ -152,6 +152,25 @@ public class WeeklySummary : IFamilyOwned
     public DateTimeOffset CreatedAt { get; set; }
 }
 
+/// <summary>One lesson for one child: the world it is set in, and how far the child has got.</summary>
+public class ChildLesson : IFamilyOwned
+{
+    public Guid Id { get; set; }
+    public Guid FamilyId { get; set; }
+    public Guid ChildId { get; set; }
+    /// <summary>Which hand-built lesson this is, for example "fractions-mixer-1".</summary>
+    public string LessonId { get; set; } = "";
+    /// <summary>The world, as JSON (see LessonWorld). It is drawn from the child's interests.</summary>
+    [Encrypted] public string World { get; set; } = "";
+    /// <summary>False when the built-in world is in use.</summary>
+    public bool FromTutor { get; set; }
+    /// <summary>The furthest step reached, from 0. Kept so a lesson can stop anywhere and resume.</summary>
+    public int StepReached { get; set; }
+    public DateTimeOffset? CompletedAt { get; set; }
+    public string? PromptVersion { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
 // Stored as numbers: add new values at the end only.
 public enum SafetySource
 {
@@ -161,6 +180,7 @@ public enum SafetySource
     ProfileInterviewInput,
     ProfileInterviewOutput,
     WeeklySummaryOutput,
+    LessonOutput,
 }
 
 /// <summary>A record that the Safety Guard acted. It holds the category only, never the text.</summary>

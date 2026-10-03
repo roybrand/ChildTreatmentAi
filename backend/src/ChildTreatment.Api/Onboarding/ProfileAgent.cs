@@ -88,27 +88,37 @@ public sealed class ProfileAgent(
                 CrisisCategory: hit.Category);
 
         var profileContext = FormatContext(context);
-        var result = await llm.CompleteAsync(new LlmRequest
+        var messages = LlmMessage.AsAlternatingTurns([.. history, new LlmMessage(LlmRole.User, parentMessage)]);
+        var blockReason = "";
+
+        for (var attempt = 1; attempt <= SafetyReviewer.MaxAttempts; attempt++)
         {
-            System = prompt.Text,
-            Context = profileContext,
-            Messages = LlmMessage.AsAlternatingTurns([.. history, new LlmMessage(LlmRole.User, parentMessage)]),
-            JsonSchema = Schema,
-            MaxTokens = 4000,
-        }, ct);
+            var result = await llm.CompleteAsync(new LlmRequest
+            {
+                System = prompt.Text,
+                Context = profileContext,
+                Messages = messages,
+                JsonSchema = Schema,
+                MaxTokens = 4000,
+            }, ct);
 
-        if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
-            return Fallback(prompt, "The model declined or returned nothing.");
+            if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
+                return Fallback(prompt, "The model declined or returned nothing.");
 
-        if (Parse(result.Text) is not { } turn)
-            return Fallback(prompt, "The model's output could not be read.");
+            if (Parse(result.Text) is not { } turn)
+                return Fallback(prompt, "The model's output could not be read.");
 
-        // Layer two: the reviewer sees the question and the notes, since both are shown to the parent.
-        var review = await reviewer.ReviewAsync(profileContext, parentMessage, FormatForReview(turn.Reply, turn.Items), ct);
-        if (!review.Passed)
-            return Fallback(prompt, review.Reason);
+            // Layer two: the reviewer sees the question and the notes, since both are shown to the parent.
+            var review = await reviewer.ReviewAsync(profileContext, parentMessage, FormatForReview(turn.Reply, turn.Items), ct);
+            if (review.Passed)
+                return new InterviewOutcome(InterviewOutcomeKind.Reply, turn.Reply, prompt.Version, turn.Items, turn.Complete);
 
-        return new InterviewOutcome(InterviewOutcomeKind.Reply, turn.Reply, prompt.Version, turn.Items, turn.Complete);
+            // One more try, with the reviewer's reason in hand.
+            blockReason = review.Reason;
+            messages = [.. messages, new LlmMessage(LlmRole.Assistant, result.Text), reviewer.RetryMessage(review)];
+        }
+
+        return Fallback(prompt, blockReason);
     }
 
     private static InterviewOutcome Fallback(Prompt prompt, string reason) =>

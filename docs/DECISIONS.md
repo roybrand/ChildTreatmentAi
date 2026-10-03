@@ -2,6 +2,32 @@
 
 Newest first. Each entry records what was decided and why. To reverse a decision, add a new entry; do not edit the old one.
 
+## 2026-10-03: The Tutor is built now, and it writes the world, not the game
+
+The teaching side is started ahead of the young person's check-in and calming tools, which were next in the build order. The first lesson is the Mixer lesson on fractions. The Tutor writes the world the game is set in, from the child's confirmed interests, once per lesson, and it is kept. It writes no numbers, checks no answers, and does not converse with the child. Shared games and chat between children are left for later.
+
+**Why:** founder's decision: the heart of the app is a child learning through games in their own world and at their own pace. Keeping the Tutor to words and colours means a model can never get the mathematics wrong or say something unplanned to a child in the middle of a lesson, and it costs two model calls per lesson per child.
+
+**Cost of this choice:** the Tutor cannot yet respond to what a child does in the game. That comes later, inside a fixed structure, and needs its own safety design.
+
+## 2026-10-03: The app does not send families to therapy
+
+Outside signs of danger, no agent recommends therapy, an assessment, or a professional. The coach, the Planner, and the safety review were changed to match, as prompt versions `parent-coach/v2`, `planner/v2`, and `safety-review/v2`. The crisis rules and the emergency screen are unchanged, and no agent advises against professional help.
+
+**Why:** founder's decision. The app is meant as a home for families who have had enough of the system, where a child learns through games at their own pace. A parent who opens up and is told to see a professional hears one more door closing. This came from the founder's own first message to the coach, which the safety review withheld because the reply did not send them to a professional first.
+
+**What this reverses:** the coach used to suggest a professional assessment when a child was out of school for a long stretch or when weeks of work brought no change.
+
+**Risk accepted:** a family whose child needs more than the app can give will not hear that from the app unless a sign of danger appears. Claude raised this and recommended keeping the danger rules, which the founder has not asked to change. The clinical review listed in [STATUS.md](STATUS.md) should look at this decision in particular.
+
+## 2026-10-03: A withheld reply gets one more try before the fallback
+
+When the safety review withholds an agent's reply, the agent is asked once to write it again, with the reviewer's reason in hand. The second reply goes through the same review. Only if that one is withheld too does the parent see the fixed fallback text. This applies to the Parent Coach, the Profile Agent, and the Planner. The fallback text was also rewritten so that it does not read as blaming the parent's wording.
+
+**Why:** the founder wrote a long, serious first message to the coach and got only the fallback, which reads as a brush-off. The review had withheld the reply because it did not recommend professional help first. That is something the coach can fix when told, and a parent left with nothing after opening up may not write again. Nothing unreviewed is ever shown: this revises "an unclear review blocks" only by adding a second attempt.
+
+**Cost of this choice:** a withheld reply now costs four model calls and about twice the wait.
+
 ## 2026-10-03: The weekly summary is asked for by the parent, and its numbers are counted by code
 
 The parent asks for the week's summary with a button. It covers the last seven days of the log, needs at least two log entries, and is written at most once a day. The count of entries and the parent's average mood, this week and the week before, are counted by code and shown next to the written summary. A pattern the Planner does not clearly mark as observed is shown as a guess. The Planner proposes and never changes the plan.

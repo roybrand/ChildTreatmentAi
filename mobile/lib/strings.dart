@@ -135,6 +135,22 @@ class Strings {
   static const summaryProposal = 'הצעה לשבוע הבא';
   static const summaryNote = 'הסיכום נכתב על ידי בינה מלאכותית מתוך היומן שלך. המספרים נספרו מהיומן.';
 
+  // Lesson. Read by a child whose gender the app does not know, so every form here fits a boy and a girl.
+  static const lessonOpen = 'שיעור';
+  static const lessonPreparing = 'מכינים את השיעור. זה יכול לקחת עד חצי דקה.';
+  static const lessonNext = 'הלאה';
+  static const lessonBack = 'אחורה';
+  static const lessonRemove = 'להוציא חלק';
+  static const lessonMine = 'מה שיצרת';
+  static const lessonNow = 'מה שיש עכשיו';
+  static const lessonKeepPouring = 'אפשר למזוג עד שהכלי מלא.';
+  static const lessonAgain = 'אפשר להתחיל מההתחלה';
+  static String lessonMatch(String result) => 'זה בדיוק $result שיצרת.';
+  static String lessonNotYet(String result) => 'זה עוד לא $result שיצרת. אפשר לשנות.';
+  static const lessonSame = 'זו בדיוק אותה כמות.';
+  static const lessonLookAtBoth ='הנה שניהם זה ליד זה. אפשר לבחור שוב.';
+  static const lessonParts = 'חלקים';
+
   // Crisis
   static const crisisButton = 'עזרה דחופה';
   static const crisisTitle = 'עזרה דחופה';

@@ -157,6 +157,21 @@ class ApiClient {
     return SummaryResult.fromJson(json as Map<String, dynamic>);
   }
 
+  // ---- Lessons ----
+
+  static const fractionsMixer = 'fractions-mixer-1';
+
+  /// The first time a lesson is opened the Tutor sets it in the child's world, which can take a while.
+  Future<Lesson> lesson(String childId, String lessonId) async {
+    final json = await _send('GET', '/api/children/$childId/lessons/$lessonId');
+    return Lesson.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<void> saveLessonProgress(String childId, String lessonId, {required int step, required bool completed}) async {
+    await _send('PUT', '/api/children/$childId/lessons/$lessonId/progress',
+        body: {'step': step, 'completed': completed});
+  }
+
   // ---- Plumbing ----
 
   static String _dateOnly(DateTime date) =>

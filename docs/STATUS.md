@@ -16,18 +16,18 @@ Planning:
 Built and working:
 
 - Backend API: sign-up and sign-in, consent, child profiles, profile items, accommodation map, daily log, coaching conversation, export and delete of all family data
-- Parent Coach agent, prompt version `parent-coach/v1`
+- Parent Coach agent. Prompt version `parent-coach/v1` passed its evaluation; `parent-coach/v2` is the one in use and has not
 - Profile Agent: the onboarding interview, prompt version `profile-agent/v1`. It asks one question at a time and writes down what the parent said; each item waits for the parent to accept it. **It has not passed its evaluation yet**
 - Planner: the weekly summary, prompt version `planner/v1`, asked for by the parent. The numbers beside it are counted by code. It has its own review prompt, `summary-review/v1`. **It has not passed its evaluation yet**
 - Scenario sets and scoring guides for both new agents (14 and 10 scenarios), and an evaluation tool that scores any of the three agents
-- Safety Guard, both layers: crisis rules in code before the model, and a model review of every reply before it is shown
+- Safety Guard, both layers: crisis rules in code before the model, and a model review of every reply before it is shown. A withheld reply is written once more with the reviewer's reason before the fallback text is used. **This second attempt has not been through an evaluation run**
 - Family isolation enforced in the data layer, and field-level encryption of sensitive text
 - Names replaced with placeholders before text goes to the model
 - Evaluation tool that runs an agent against its scenario set and scores the replies
 
 Verified:
 
-- 63 automated backend tests pass. They use a fake model, so they check the code around the new agents and not what the agents write
+- 65 automated backend tests pass. They use a fake model, so they check the code around the new agents and not what the agents write
 - An end-to-end run against the real model and a real PostgreSQL database worked: coaching reply, crisis screen, export, delete
 - Sensitive text was confirmed encrypted in the database
 - The Parent Coach passed all 19 scenarios on the final prompt. The report is in [eval/parent-coach-v1.md](eval/parent-coach-v1.md)
@@ -44,6 +44,36 @@ It took four rounds to reach 19 of 19. Earlier rounds passed 14 to 16 and led to
 - One reply contained a stray English fragment. This was a one-off model glitch and may recur rarely
 
 No round had a safety failure on a risky scenario. Results vary between runs, so one clean run is evidence, not proof.
+
+## Parent Coach v2: no referrals to therapy
+
+Prompt version `parent-coach/v2`, with `safety-review/v2`, follows the founder's decision that the app does not send families to therapy outside signs of danger. **It passed on the production models on 2026-10-03: 20 of 20, no safety failure, $1.13.**
+
+On the testing models, which development uses, the same prompt scored 7 of 20 with 4 safety failures on risky scenarios ($0.44). So what the founder sees while testing is weaker than what a family would get:
+
+- The new scenario, a child long out of school whose parent is done with therapy, got the reply the decision asks for: warm, no referral, starts from what happens at home. The scorer failed it on a point of Hebrew that its own note calls consistent
+- Most failures were replies too long for a phone and slips in Hebrew gender, which the testing model is known for
+- Two risky scenarios were withheld by the review on the smallest model even after the second attempt: a parent who used force, and a parent who wants to stop therapy
+- One risky scenario failed because the coach, asked for a diagnosis, did not say who can give one. The prompt now tells it to answer that question. That change has not been run
+- One risky scenario failed because the coach said that changing medication without the doctor may be unsafe, which the scorer read as medication advice
+
+## Tutor: the first lesson
+
+Built on 2026-10-03, following the founder's direction to start the teaching side.
+
+- **The lesson.** "Mix your shade" from [TUTOR_LESSONS.md](TUTOR_LESSONS.md): fractions and equal fractions through the Mixer game. The child pours two ingredients into a container divided into parts and watches the colour, through the six steps from a real problem to the notation used in class. Nothing is marked wrong. The game, the numbers, and every check are code
+- **The Tutor.** Prompt version `tutor/v1`. It reads what the parent confirmed the child loves and sets the game in that world: the place, the scene, the two ingredients and their colours, and why the idea is useful. It writes no numbers. Code rejects a world with a digit, a bad colour, or two colours too close to tell apart, and a review prompt for children's text, `lesson-review/v1`, checks it before a child sees it. When either check fails, or the child has no interests on file, the lesson runs in a built-in paint world
+- **In the app.** The lesson opens from the school icon in the top bar, on its own screen. Progress is saved, and a lesson resumes where it stopped
+- **Tests.** 76 backend tests and 20 app tests pass, including the arithmetic of every step
+
+Evaluation on the testing models, two rounds, $0.39: 6 of 8, then 5 of 8. **It has not passed.**
+
+- The worlds are good when read by hand: a nail polish studio for a teen who loves make-up, a team drink of syrup and lemon water for a young footballer, potions for a fantasy reader
+- A teen who wants to tend bar got a "bar" and "a cocktail with no alcohol". The prompt and the review now rule that out; in the second round the review withheld that world and the built-in one would have been shown, which is safe and still a failure
+- A child who loves horses got paint for marking horses' coats. The prompt now says a mix for animals is feed. That change has not been run
+- One failure was the scorer counting the digits in the colour codes as numbers. The tool now labels them as data. Not run
+
+Not built yet: the two styles (studio and cartoon), reading the text aloud, the other three lessons in fractions, the other topics, mastery records for the Planner, and the child's own sign-in. The lesson opens from the parent's screen for now. The Tutor does not hold a conversation with the child; it writes the world once. [SAFETY.md](SAFETY.md) still requires a clinician's review before any agent whose words a child reads is released to a family.
 
 ## What the evaluation of the two new agents showed
 
@@ -96,7 +126,8 @@ Spending:
 
 ## Next
 
-1. Run both new agents' evaluations on the production models to get a reading that can be trusted. Needs the founder's go-ahead; about $1.10 for both
+1. Run the Profile Agent, Planner, and Tutor evaluations on the production models to get a reading that can be trusted. Needs the founder's go-ahead; about $1.50 for the three
+1a. Founder plays the lesson and says what feels wrong. Then the next lessons in fractions, and the cartoon style
 2. Founder runs the app in a browser and on their Android phone and reports what looks or reads wrong
 3. Give the Parent Coach the latest weekly summary, then re-run its evaluation
 4. Store the child's grammatical gender, asked in the interview
@@ -118,7 +149,7 @@ Spending:
 - The model's refusal fallback to another model is not enabled; a refusal shows the safe fallback text
 - The crisis phrase list and all prompts are drafts with no clinical review
 - No rate limiting, no email confirmation, no password reset screen, no production hosting or secrets management
-- The coach's prompt still names a placeholder for the parent, which the app never fills in. If the coach uses it, the parent sees the literal text. Fixing it means a new coach prompt version and a full evaluation run
+- In development the safety review runs on the smallest model, which withholds replies for reasons that are not in its rules. A stronger review model would cost a fraction of a cent more per reply
 - The safety review prompt written for the coach is reused unchanged for the interview
 - The weekly summary is not scheduled and has no reminder, and a summary withheld by the review can be asked for again at once, which costs two model calls each time
 - The week runs on the server's date in UTC, so near midnight in Israel the seven days can be off by one

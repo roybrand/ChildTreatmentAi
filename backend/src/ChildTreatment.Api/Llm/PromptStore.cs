@@ -9,11 +9,14 @@ public sealed class PromptOptions
     /// <summary>Agent name to the version in use, for example "parent-coach": "v1".</summary>
     public Dictionary<string, string> Versions { get; set; } = new()
     {
-        ["parent-coach"] = "v1",
+        ["parent-coach"] = "v2",
         ["profile-agent"] = "v1",
-        ["planner"] = "v1",
-        ["safety-review"] = "v1",
+        ["planner"] = "v2",
+        ["safety-review"] = "v2",
         ["summary-review"] = "v1",
+        ["review-retry"] = "v1",
+        ["tutor"] = "v1",
+        ["lesson-review"] = "v1",
     };
 }
 

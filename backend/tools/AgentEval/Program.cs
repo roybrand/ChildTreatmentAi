@@ -1,5 +1,5 @@
 // Runs an agent against its scenario set and scores every reply.
-// Usage: dotnet run --project backend/tools/AgentEval [-- --agent parent-coach|profile-agent|planner]
+// Usage: dotnet run --project backend/tools/AgentEval [-- --agent parent-coach|profile-agent|planner|tutor]
 //        [-- --group risky] [-- --id ord-01-first-session-no-map] [-- --list]
 //        [-- --model claude-opus-5-5 --effort medium --review-model claude-opus-5-5 --review-effort medium]
 // Every run calls the model and costs money: about three calls per scenario. The defaults are the
@@ -10,6 +10,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using ChildTreatment.Api.Coaching;
 using ChildTreatment.Api.Data;
+using ChildTreatment.Api.Learning;
 using ChildTreatment.Api.Llm;
 using ChildTreatment.Api.Onboarding;
 using ChildTreatment.Api.Planning;
@@ -38,6 +39,10 @@ var agents = new Dictionary<string, (string[] Criteria, string[] Safety)>
         ["recognisable", "observed_vs_guess", "no_step_up", "shows_decline", "no_forbidden",
             "escalates_when_needed", "short_and_plain", "hebrew_and_names", "scenario_notes"],
         ["no_step_up", "shows_decline", "no_forbidden", "escalates_when_needed", "scenario_notes"]),
+    [TutorAgent.AgentName] = (
+        ["honest_link", "fits_the_child", "child_is_the_maker", "no_pressure", "safe_for_a_child",
+            "no_owned_names", "no_numbers", "reads_for_both", "scenario_notes"],
+        ["no_pressure", "safe_for_a_child", "no_owned_names", "scenario_notes"]),
 };
 if (!agents.TryGetValue(agentName, out var agentSpec))
 {
@@ -61,6 +66,7 @@ var reviewer = new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Insta
 var coach = new ParentCoachAgent(llm, prompts, crisisRules, reviewer);
 var profileAgent = new ProfileAgent(llm, prompts, crisisRules, reviewer, NullLogger<ProfileAgent>.Instance);
 var planner = new WeeklySummaryAgent(llm, prompts, reviewer, NullLogger<WeeklySummaryAgent>.Instance);
+var tutor = new TutorAgent(llm, prompts, reviewer, NullLogger<TutorAgent>.Instance);
 
 var promptVersion = prompts.Get(agentName).Version;
 var scoringGuide = File.ReadAllText(Path.Combine(promptsRoot, agentName, "scoring-guide.md"));
@@ -132,6 +138,7 @@ async Task<ScenarioResult> RunAsync(Scenario scenario, CancellationToken ct)
         {
             ProfileAgent.AgentName => await RunProfileAgentAsync(scenario, ct),
             WeeklySummaryAgent.AgentName => await RunPlannerAsync(scenario, ct),
+            TutorAgent.AgentName => await RunTutorAsync(scenario, ct),
             _ => await RunCoachAsync(scenario, ct),
         };
     }
@@ -239,6 +246,22 @@ async Task<ScenarioResult> RunPlannerAsync(Scenario scenario, CancellationToken 
     output.Append($"Proposal: {content.Proposal}");
 
     return await JudgeAsync(scenario, WeeklySummaryAgent.FormatContext(context), "weekly_summary", output.ToString(), ct);
+}
+
+async Task<ScenarioResult> RunTutorAsync(Scenario scenario, CancellationToken ct)
+{
+    var context = new TutorContext { Age = scenario.Child.Age, Interests = scenario.Child.Profile ?? [] };
+
+    var outcome = await tutor.BuildWorldAsync(context, ct);
+    // Without a usable world the child gets the built-in one: safe, and not what the scenario asks for.
+    if (outcome.World is null)
+        return NoReply(scenario, "BuiltInWorld", "", outcome.BlockReason);
+
+    var output = $"{TutorAgent.FormatForReview(outcome.World)}\n" +
+                 $"Colour codes of the two ingredients (data for the game, not wording the child reads): " +
+                 $"{outcome.World.IngredientA.Color}, {outcome.World.IngredientB.Color}\n" +
+                 $"The tutor's note on the link: {outcome.Link}";
+    return await JudgeAsync(scenario, TutorAgent.FormatContext(context), "lesson_wording", output, ct);
 }
 
 static List<string> Texts(List<string>? items) => items ?? [];

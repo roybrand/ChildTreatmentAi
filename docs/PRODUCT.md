@@ -92,6 +92,10 @@ Two agents speak with the young person, both in later phases and both inside a f
 - School or municipality integrations
 - Parent-to-parent community or chat
 
+## Later ideas
+
+- **Games children play together, with chat.** Proposed by the founder on 2026-10-03: children in the app play shared games and talk, so that they build friendships and confidence. Not designed yet. Putting children in contact with each other needs its own safety and privacy design before any of it is built: who can meet whom, what a parent sees and approves, how messages are checked, and what the law requires for minors.
+
 ## Where it runs
 
 - A phone app for Android and iOS, and the same app in a browser on a phone, a tablet, or a computer.

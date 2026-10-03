@@ -19,6 +19,7 @@ class FakeServer {
   final children = <Map<String, dynamic>>[];
   final coachMessages = <String>[];
   final profileItems = <Map<String, dynamic>>[];
+  int lessonStep = 0;
   Map<String, dynamic> coachReply = {'kind': 'Reply', 'text': 'תשובת המאמן', 'contacts': <dynamic>[]};
 
   http.Client get client => MockClient(_handle);
@@ -53,6 +54,29 @@ class FakeServer {
     if (path.endsWith('/coach/messages') && request.method == 'POST') {
       coachMessages.add(body!['text'] as String);
       return _json(200, coachReply);
+    }
+    if (path.endsWith('/progress')) {
+      lessonStep = body!['step'] as int;
+      return _json(200, {});
+    }
+    if (path.contains('/lessons/')) {
+      return _json(200, {
+        'lessonId': 'fractions-mixer-1',
+        'fromTutor': true,
+        'stepReached': 0,
+        'completed': false,
+        'world': {
+          'world': 'סטודיו ללק',
+          'scene': 'יצרת גוון משלך.',
+          'request': 'לקוחה רוצה בקבוק גדול.',
+          'ingredientA': {'name': 'ורוד', 'color': '#E85D9A'},
+          'ingredientB': {'name': 'לבן', 'color': '#FFFFFF'},
+          'smallLabel': 'הבקבוק הקטן',
+          'bigLabel': 'הבקבוק הגדול',
+          'resultWord': 'הגוון',
+          'whyNeeded': 'כדי להכין שוב את אותו דבר.',
+        },
+      });
     }
     if (path.endsWith('/profile/interview')) {
       return _json(200, {'opening': 'מה נועה אוהבת?', 'complete': false, 'messages': <dynamic>[]});
@@ -248,6 +272,53 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('נועה אוהבת לצייר'), findsOneWidget);
     expect(find.text(Strings.profileSections['StrengthsAndInterests']!), findsOneWidget);
+  });
+
+  testWidgets('in the lesson the child pours until the mix matches, and nothing is marked wrong', (tester) async {
+    // A phone held upright, where the whole game fits without scrolling.
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 915);
+    addTearDown(tester.view.reset);
+    final server = await pumpApp(tester, ready: true);
+
+    await tester.tap(find.byTooltip(Strings.lessonOpen));
+    await tester.pumpAndSettle();
+    expect(find.text('סטודיו ללק'), findsOneWidget);
+    expect(find.text('יצרת גוון משלך.'), findsOneWidget);
+
+    // Three sentences set the problem, then the game.
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text(Strings.lessonNext));
+      await tester.pumpAndSettle();
+    }
+    expect(find.textContaining('8 חלקים'), findsWidgets);
+    FilledButton next() => tester.widget<FilledButton>(find.widgetWithText(FilledButton, Strings.lessonNext));
+    expect(next().onPressed, isNull);
+
+    Future<void> pour(String name, int times) async {
+      for (var i = 0; i < times; i++) {
+        await tester.tap(find.text(name));
+        await tester.pump();
+      }
+    }
+
+    // A full container with the wrong mix is described, not marked wrong, and can be changed.
+    await pour('ורוד', 8);
+    expect(find.text(Strings.lessonNotYet('הגוון')), findsOneWidget);
+    expect(next().onPressed, isNull);
+    await tester.tap(find.text(Strings.lessonRemove));
+    await tester.pump();
+    await tester.tap(find.text(Strings.lessonRemove));
+    await tester.pump();
+
+    await pour('לבן', 2);
+    expect(find.text(Strings.lessonMatch('הגוון')), findsOneWidget);
+    expect(next().onPressed, isNotNull);
+
+    await tester.tap(find.text(Strings.lessonNext));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('6 מתוך 8'), findsOneWidget);
+    expect(server.lessonStep, 4);
   });
 
   testWidgets('the weekly summary shows the numbers and marks a guess as a guess', (tester) async {

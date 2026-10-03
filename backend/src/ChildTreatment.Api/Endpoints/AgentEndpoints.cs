@@ -1,4 +1,5 @@
 using ChildTreatment.Api.Data;
+using ChildTreatment.Api.Learning;
 using ChildTreatment.Api.Onboarding;
 using ChildTreatment.Api.Planning;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ public sealed record InterviewMessageResponse(
 public sealed record InterviewResponse(string Opening, bool Complete, IEnumerable<InterviewMessageResponse> Messages);
 public sealed record SendInterviewMessageRequest(string Text);
 public sealed record UpdateProfileItemRequest(ProfileItemStatus Status, string? Text);
+public sealed record LessonProgressRequest(int Step, bool Completed);
 
 /// <summary>The Profile Agent's interview and the Planner's weekly summary.</summary>
 public static class AgentEndpoints
@@ -67,6 +69,23 @@ public static class AgentEndpoints
                 item.Text = request.Text.Trim();
             await db.SaveChangesAsync();
             return Results.Ok(new ProfileItemResponse(item.Id, item.Section, item.Text, item.Status));
+        });
+
+        // Opening a lesson for the first time asks the Tutor to set it in the child's world.
+        child.MapGet("/lessons/{lessonId}", async (
+            Guid childId, string lessonId, bool? newWorld, LessonService lessons, CancellationToken ct) =>
+        {
+            var lesson = await lessons.GetAsync(childId, lessonId, newWorld ?? false, ct);
+            return lesson is null ? Results.NotFound() : Results.Ok(lesson);
+        });
+
+        child.MapPut("/lessons/{lessonId}/progress", async (
+            Guid childId, string lessonId, LessonProgressRequest request, LessonService lessons, CancellationToken ct) =>
+        {
+            if (request.Step is < 0 or > 100)
+                return Results.Problem("Step is out of range.", statusCode: 400);
+            var lesson = await lessons.SaveProgressAsync(childId, lessonId, request.Step, request.Completed, ct);
+            return lesson is null ? Results.NotFound() : Results.Ok(lesson);
         });
 
         child.MapGet("/summaries", async (Guid childId, WeeklySummaryService summaries, CancellationToken ct) =>

@@ -66,6 +66,7 @@ public static class FamilyEndpoints
                 coaching = await db.CoachingMessages.OrderBy(m => m.CreatedAt).ToListAsync(),
                 interview = await db.InterviewMessages.OrderBy(m => m.CreatedAt).ToListAsync(),
                 weeklySummaries = await db.WeeklySummaries.OrderBy(s => s.CreatedAt).ToListAsync(),
+                lessons = await db.ChildLessons.OrderBy(l => l.CreatedAt).ToListAsync(),
                 safetyEvents = await db.SafetyEvents.ToListAsync(),
             });
         });

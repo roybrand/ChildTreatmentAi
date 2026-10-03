@@ -51,24 +51,33 @@ public sealed class ParentCoachAgent(
             return new CoachOutcome(CoachOutcomeKind.Crisis, SafetyTexts.Crisis, prompt.Version, CrisisCategory: hit.Category);
 
         var familyContext = FormatContext(context);
-        var result = await llm.CompleteAsync(new LlmRequest
+        var messages = LlmMessage.AsAlternatingTurns([.. history, new LlmMessage(LlmRole.User, parentMessage)]);
+        var blockReason = "";
+
+        for (var attempt = 1; attempt <= SafetyReviewer.MaxAttempts; attempt++)
         {
-            System = prompt.Text,
-            Context = familyContext,
-            Messages = LlmMessage.AsAlternatingTurns([.. history, new LlmMessage(LlmRole.User, parentMessage)]),
-        }, ct);
+            var result = await llm.CompleteAsync(new LlmRequest
+            {
+                System = prompt.Text,
+                Context = familyContext,
+                Messages = messages,
+            }, ct);
 
-        if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
-            return new CoachOutcome(CoachOutcomeKind.Fallback, SafetyTexts.Fallback, prompt.Version,
-                BlockReason: "The model declined or returned nothing.");
+            if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
+                return new CoachOutcome(CoachOutcomeKind.Fallback, SafetyTexts.Fallback, prompt.Version,
+                    BlockReason: "The model declined or returned nothing.");
 
-        // Layer two: review of the reply before a person sees it.
-        var review = await reviewer.ReviewAsync(familyContext, parentMessage, result.Text, ct);
-        if (!review.Passed)
-            return new CoachOutcome(CoachOutcomeKind.Fallback, SafetyTexts.Fallback, prompt.Version,
-                BlockReason: review.Reason);
+            // Layer two: review of the reply before a person sees it.
+            var review = await reviewer.ReviewAsync(familyContext, parentMessage, result.Text, ct);
+            if (review.Passed)
+                return new CoachOutcome(CoachOutcomeKind.Reply, result.Text.Trim(), prompt.Version);
 
-        return new CoachOutcome(CoachOutcomeKind.Reply, result.Text.Trim(), prompt.Version);
+            // A withheld reply leaves a parent with nothing, so the coach writes once more with the reason in hand.
+            blockReason = review.Reason;
+            messages = [.. messages, new LlmMessage(LlmRole.Assistant, result.Text), reviewer.RetryMessage(review)];
+        }
+
+        return new CoachOutcome(CoachOutcomeKind.Fallback, SafetyTexts.Fallback, prompt.Version, BlockReason: blockReason);
     }
 
     public static string FormatContext(CoachContext context)

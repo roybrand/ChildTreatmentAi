@@ -28,6 +28,7 @@ public class AppDbContext(
     public DbSet<SafetyEvent> SafetyEvents => Set<SafetyEvent>();
     public DbSet<InterviewMessage> InterviewMessages => Set<InterviewMessage>();
     public DbSet<WeeklySummary> WeeklySummaries => Set<WeeklySummary>();
+    public DbSet<ChildLesson> ChildLessons => Set<ChildLesson>();
 
     // Read by the query filters below on every query, so each request sees only its own family.
     private Guid CurrentFamilyId => currentFamily.FamilyId ?? Guid.Empty;
@@ -66,6 +67,7 @@ public class AppDbContext(
         builder.Entity<ParentLogEntry>().HasIndex(e => new { e.ChildId, e.Date });
         builder.Entity<InterviewMessage>().HasIndex(m => new { m.ChildId, m.CreatedAt });
         builder.Entity<WeeklySummary>().HasIndex(s => new { s.ChildId, s.WeekEnd });
+        builder.Entity<ChildLesson>().HasIndex(l => new { l.ChildId, l.LessonId }).IsUnique();
     }
 
     // Builds: e => e.FamilyId == this.CurrentFamilyId

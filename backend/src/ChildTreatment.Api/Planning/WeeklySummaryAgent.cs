@@ -92,28 +92,38 @@ public sealed class WeeklySummaryAgent(
         var prompt = prompts.Get(AgentName);
         var weekContext = FormatContext(context);
 
-        var result = await llm.CompleteAsync(new LlmRequest
+        List<LlmMessage> messages = [new LlmMessage(LlmRole.User, "Write the summary of this week for the parent.")];
+        var blockReason = "";
+
+        for (var attempt = 1; attempt <= SafetyReviewer.MaxAttempts; attempt++)
         {
-            System = prompt.Text,
-            Context = weekContext,
-            Messages = [new LlmMessage(LlmRole.User, "Write the summary of this week for the parent.")],
-            JsonSchema = Schema,
-            MaxTokens = 4000,
-        }, ct);
+            var result = await llm.CompleteAsync(new LlmRequest
+            {
+                System = prompt.Text,
+                Context = weekContext,
+                Messages = messages,
+                JsonSchema = Schema,
+                MaxTokens = 4000,
+            }, ct);
 
-        if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
-            return new SummaryOutcome(SummaryOutcomeKind.Fallback, null, prompt.Version, "The model declined or returned nothing.");
+            if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
+                return new SummaryOutcome(SummaryOutcomeKind.Fallback, null, prompt.Version, "The model declined or returned nothing.");
 
-        if (Parse(result.Text) is not { } content)
-            return new SummaryOutcome(SummaryOutcomeKind.Fallback, null, prompt.Version, "The model's output could not be read.");
+            if (Parse(result.Text) is not { } content)
+                return new SummaryOutcome(SummaryOutcomeKind.Fallback, null, prompt.Version, "The model's output could not be read.");
 
-        // The reviewer reads the week's log as the parent's words, so a missed sign of danger is caught.
-        var review = await reviewer.ReviewAsync(
-            weekContext, string.Join("\n", context.Log), FormatForReview(content), ct, SafetyReviewer.SummaryRules);
-        if (!review.Passed)
-            return new SummaryOutcome(SummaryOutcomeKind.Fallback, null, prompt.Version, review.Reason);
+            // The reviewer reads the week's log as the parent's words, so a missed sign of danger is caught.
+            var review = await reviewer.ReviewAsync(
+                weekContext, string.Join("\n", context.Log), FormatForReview(content), ct, SafetyReviewer.SummaryRules);
+            if (review.Passed)
+                return new SummaryOutcome(SummaryOutcomeKind.Summary, content, prompt.Version);
 
-        return new SummaryOutcome(SummaryOutcomeKind.Summary, content, prompt.Version);
+            // One more try, with the reviewer's reason in hand.
+            blockReason = review.Reason;
+            messages = [.. messages, new LlmMessage(LlmRole.Assistant, result.Text), reviewer.RetryMessage(review)];
+        }
+
+        return new SummaryOutcome(SummaryOutcomeKind.Fallback, null, prompt.Version, blockReason);
     }
 
     private WeeklySummaryContent? Parse(string json)

@@ -266,6 +266,71 @@ class SummaryResult {
       );
 }
 
+class Ingredient {
+  const Ingredient({required this.name, required this.color});
+
+  final String name;
+
+  /// 0xAARRGGBB, from the server's "#RRGGBB".
+  final int color;
+
+  factory Ingredient.fromJson(Map<String, dynamic> json) => Ingredient(
+        name: json['name'] as String,
+        color: 0xFF000000 | int.parse((json['color'] as String).substring(1), radix: 16),
+      );
+}
+
+/// The world a lesson is set in: words and colours only. The numbers belong to the game.
+class LessonWorld {
+  const LessonWorld({
+    required this.world,
+    required this.scene,
+    required this.request,
+    required this.ingredientA,
+    required this.ingredientB,
+    required this.smallLabel,
+    required this.bigLabel,
+    required this.resultWord,
+    required this.whyNeeded,
+  });
+
+  final String world;
+  final String scene;
+  final String request;
+  final Ingredient ingredientA;
+  final Ingredient ingredientB;
+  final String smallLabel;
+  final String bigLabel;
+  final String resultWord;
+  final String whyNeeded;
+
+  factory LessonWorld.fromJson(Map<String, dynamic> json) => LessonWorld(
+        world: json['world'] as String,
+        scene: json['scene'] as String,
+        request: json['request'] as String,
+        ingredientA: Ingredient.fromJson(json['ingredientA'] as Map<String, dynamic>),
+        ingredientB: Ingredient.fromJson(json['ingredientB'] as Map<String, dynamic>),
+        smallLabel: json['smallLabel'] as String,
+        bigLabel: json['bigLabel'] as String,
+        resultWord: json['resultWord'] as String,
+        whyNeeded: json['whyNeeded'] as String,
+      );
+}
+
+class Lesson {
+  const Lesson({required this.world, required this.stepReached, required this.completed});
+
+  final LessonWorld world;
+  final int stepReached;
+  final bool completed;
+
+  factory Lesson.fromJson(Map<String, dynamic> json) => Lesson(
+        world: LessonWorld.fromJson(json['world'] as Map<String, dynamic>),
+        stepReached: json['stepReached'] as int,
+        completed: json['completed'] as bool,
+      );
+}
+
 class LogEntryResult {
   const LogEntryResult({required this.entry, required this.crisis});
 

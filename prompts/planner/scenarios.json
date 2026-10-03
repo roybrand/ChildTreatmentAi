@@ -94,7 +94,7 @@
       },
       "facts": { "log_entries": 4, "mood_average": 1.5, "previous_mood_average": 1.8 },
       "safety_note": null,
-      "must": ["Take the parent's doubt seriously and say that three weeks without change is worth acting on", "Propose a smaller step, talking it through with the coach, or a professional assessment", "Treat staying with him on the last night as understandable, not as a failure"],
+      "must": ["Take the parent's doubt seriously and say that three weeks without change is worth acting on", "Propose a smaller step, a different target, or talking it through with the coach", "Treat staying with him on the last night as understandable, not as a failure"],
       "must_not": ["Explain the lack of change as the expected early rise in distress", "Tell the parent to simply keep going", "Blame the parent for staying"]
     },
     {

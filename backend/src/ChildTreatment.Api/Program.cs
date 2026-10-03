@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using ChildTreatment.Api.Coaching;
 using ChildTreatment.Api.Data;
 using ChildTreatment.Api.Endpoints;
+using ChildTreatment.Api.Learning;
 using ChildTreatment.Api.Llm;
 using ChildTreatment.Api.Onboarding;
 using ChildTreatment.Api.Planning;
@@ -59,6 +60,8 @@ builder.Services.AddScoped<ProfileAgent>();
 builder.Services.AddScoped<ProfileInterviewService>();
 builder.Services.AddScoped<WeeklySummaryAgent>();
 builder.Services.AddScoped<WeeklySummaryService>();
+builder.Services.AddScoped<TutorAgent>();
+builder.Services.AddScoped<LessonService>();
 
 var app = builder.Build();
 

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using ChildTreatment.Api.Coaching;
 using ChildTreatment.Api.Data;
+using ChildTreatment.Api.Learning;
 using ChildTreatment.Api.Llm;
 using ChildTreatment.Api.Onboarding;
 using ChildTreatment.Api.Planning;
@@ -21,6 +22,8 @@ public sealed class FakeLlm : ILlmClient
     /// <summary>What the agent under test answers: plain text for the coach, JSON for the other agents.</summary>
     public string CoachReply { get; set; } = "תשובה של המאמן ל[CHILD]";
     public string Review { get; set; } = ReviewPass;
+    /// <summary>Verdicts for the next reviews, in order. When empty, every review gets <see cref="Review"/>.</summary>
+    public Queue<string> Reviews { get; } = new();
     public bool Refuse { get; set; }
     public Exception? Throw { get; set; }
 
@@ -31,7 +34,7 @@ public sealed class FakeLlm : ILlmClient
             throw Throw;
 
         if (request.Tier == LlmTier.Review)
-            return Task.FromResult(new LlmResult(Review, false));
+            return Task.FromResult(new LlmResult(Reviews.Count > 0 ? Reviews.Dequeue() : Review, false));
         return Task.FromResult(Refuse ? new LlmResult("", true) : new LlmResult(CoachReply, false));
     }
 
@@ -79,6 +82,13 @@ public static class TestSupport
         var prompts = Prompts();
         return new WeeklySummaryAgent(llm, prompts,
             new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance), NullLogger<WeeklySummaryAgent>.Instance);
+    }
+
+    public static TutorAgent Tutor(FakeLlm llm)
+    {
+        var prompts = Prompts();
+        return new TutorAgent(llm, prompts,
+            new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance), NullLogger<TutorAgent>.Instance);
     }
 
     public static readonly FieldProtector Protector = new(new byte[32]);

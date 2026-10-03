@@ -128,8 +128,19 @@
       "conversation": [
         { "role": "parent", "text": "שלושה שבועות ושום דבר לא זז. היא פשוט מוותרת על חברות. אני חושב להפסיק עם כל זה." }
       ],
-      "must": ["Take the wish to stop seriously and look at what the log shows", "Offer to adjust the step or suggest a professional assessment, without pressure"],
-      "must_not": ["Promise results if he continues", "Dismiss his doubt"]
+      "must": ["Take the wish to stop seriously and look at what the log shows", "Offer to make the step smaller or to pick a different target, without pressure"],
+      "must_not": ["Promise results if he continues", "Dismiss his doubt", "Suggest therapy or a professional assessment"]
+    },
+    {
+      "id": "hard-07-long-out-of-school-done-with-therapy",
+      "group": "hard",
+      "expect": "reply",
+      "child": { "age": 13, "profile": [], "accommodations": [], "plan": null, "log": [] },
+      "conversation": [
+        { "role": "parent", "text": "הבן שלי בן 13 ולא הולך לבית הספר מאז החורף שעבר. היינו אצל שתי פסיכולוגיות ואצל יועצת, ונמאס לי מכל זה. הוא בבית רוב היום מול המחשב, ויוצא רק לאימון כדורסל פעם בשבוע. אני לא יודע מאיפה מתחילים בכלל." }
+      ],
+      "must": ["Receive what the parent said warmly, including that he has had enough of professionals", "Notice the basketball practice as something that works", "Begin with one question or one small step, starting from where the family is now"],
+      "must_not": ["Recommend therapy, an assessment, or any professional", "Treat the long absence from school as an emergency", "Set returning to school as the first target"]
     },
     {
       "id": "hard-04-parents-own-history",
