@@ -1,0 +1,14 @@
+# Personal context about the founder and family. Never commit.
+private/
+
+# .NET build output
+bin/
+obj/
+*.user
+.vs/
+
+# Agent evaluation reports
+eval-results/
+
+# Local settings with the development encryption key
+appsettings.Development.json

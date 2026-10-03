@@ -1,0 +1,51 @@
+{
+  "_about": "Draft list, not yet reviewed by a clinician. Matched in code against normalised text (lower case, Hebrew vowel marks removed) before any agent sees the message. A match shows the crisis screen. The list errs toward matching too often.",
+  "version": "crisis-rules/v1",
+  "categories": [
+    {
+      "id": "self_harm",
+      "phrases": [
+        "להתאבד", "התאבד", "אתאבד", "מתאבד", "אובדנ",
+        "לא רוצה לחיות", "לא רוצה יותר לחיות", "אין טעם לחיות", "אין לי בשביל מה לחיות",
+        "רוצה למות", "רוצה שאמות", "הלוואי שאמות", "הלוואי שהייתי מת", "מעדיפה למות", "מעדיף למות", "עדיף שאמות",
+        "קל בלעדי", "טוב בלעדי", "עדיף בלעדי",
+        "לסיים את החיים", "לשים קץ לחי", "לגמור עם הכל", "לגמור עם הכול",
+        "לפגוע בעצמ", "פוגעת בעצמ", "פוגע בעצמ", "פגעה בעצמ", "פגע בעצמ", "פגיעה עצמית",
+        "חותכת את עצמ", "חותך את עצמ", "חתכה את עצמ", "חתך את עצמ",
+        "kill myself", "kill herself", "kill himself", "killing herself", "killing himself", "killing myself",
+        "suicide", "suicidal", "want to die", "wants to die", "wish i was dead", "wish i were dead", "wishes she was dead", "wishes he was dead",
+        "rather die", "better off without me", "better off without her", "better off without him", "end my life", "end her life", "end his life", "no reason to live",
+        "self-harm", "self harm", "hurt herself", "hurt himself", "hurt myself", "hurting herself", "hurting himself", "hurting myself",
+        "cutting herself", "cutting himself", "cuts herself", "cuts himself", "cut herself", "cut himself"
+      ]
+    },
+    {
+      "id": "harm_to_others",
+      "phrases": [
+        "להרוג את", "אהרוג את", "לרצוח", "ארצח",
+        "לפגוע במישהו", "לדקור",
+        "kill him", "kill her", "kill them", "kill someone", "murder", "stab"
+      ]
+    },
+    {
+      "id": "abuse",
+      "phrases": [
+        "התעללות", "מתעלל", "התעלל",
+        "מכה אותה", "מכה אותו", "מרביץ ל", "מרביצה ל", "הרבצתי ל", "הרביץ ל", "הרביצה ל", "הכיתי אות",
+        "פגיעה מינית", "פגע בה מינית", "פגע בו מינית", "הטרדה מינית", "אונס", "נאנס",
+        "abuse", "abused", "abusing", "molest", "rape", "raped", "beat her", "beat him", "beats her", "beats him", "hit her", "hit him", "hits her", "hits him"
+      ]
+    },
+    {
+      "id": "severe_decline",
+      "phrases": [
+        "לא אוכלת כבר", "לא אוכל כבר", "הפסיקה לאכול", "הפסיק לאכול", "מסרבת לאכול", "מסרב לאכול",
+        "לא ישנה כבר", "לא ישן כבר", "לא ישנה בכלל", "לא ישן בכלל",
+        "לא יוצאת מהמיטה", "לא יוצא מהמיטה", "לא קמה מהמיטה", "לא קם מהמיטה",
+        "stopped eating", "refuses to eat", "not eating for", "hasn't eaten", "has not eaten",
+        "hasn't slept", "has not slept", "not sleeping at all",
+        "won't get out of bed", "will not get out of bed", "hasn't left her bed", "hasn't left his bed"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+# Local development database. Not for production.
+services:
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: childtreatment
+      POSTGRES_USER: childtreatment
+      POSTGRES_PASSWORD: dev-only-password
+    ports:
+      - "5433:5432"
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+volumes:
+  dbdata:
