@@ -1,6 +1,6 @@
 # Architecture
 
-Status: the backend for the first slice of phase 1 is built. The mobile app is not started. Items marked **(open)** are not decided.
+Status: the backend for the first slice of phase 1 is built. The mobile app has a shell and the crisis screen. Items marked **(open)** are not decided.
 
 ## Stack
 
@@ -50,7 +50,7 @@ Every LLM call goes through one module. It is responsible for:
 - Applying the rules in [SAFETY.md](SAFETY.md) to every prompt, and checking responses before they reach a user.
 - Recording which prompt version produced which output, so a bad response can be traced.
 
-As built: the model is `claude-opus-5-5`, set in configuration. A coach reply takes about 20 seconds because the reply and its safety review are two calls made one after the other, without streaming. When the model declines a request, the parent sees a safe fallback text; automatic fallback to another model is not enabled.
+As built: production settings use `claude-opus-5-5` for the coach and the review. Development settings use cheaper models to keep testing costs down. Every call logs its model and token counts. A coach reply takes about 20 seconds because the reply and its safety review are two calls made one after the other, without streaming. When the model declines a request, the parent sees a safe fallback text; automatic fallback to another model is not enabled.
 
 The app never calls the LLM directly, and no API key is ever shipped inside the app.
 

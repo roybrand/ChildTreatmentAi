@@ -11,6 +11,7 @@ An app that helps families of children and teens with anxiety. Start with [CLAUD
 | `backend/src/ChildTreatment.Api/` | The ASP.NET Core API |
 | `backend/tests/` | Tests. They use a fake model and need no network |
 | `backend/tools/AgentEval/` | Runs an agent against its scenario set and scores the replies |
+| `mobile/` | The Flutter app for iOS and Android |
 
 ## Requirements
 
@@ -39,12 +40,17 @@ dotnet test
 ## Evaluate the Parent Coach
 
 ```bash
-dotnet run --project backend/tools/AgentEval                     # every scenario
+dotnet run --project backend/tools/AgentEval                     # every scenario, on the cheaper testing models
 dotnet run --project backend/tools/AgentEval -- --group risky    # one group
 dotnet run --project backend/tools/AgentEval -- --id risk-01-medication
 ```
 
-Each scenario makes up to three model calls, so a full run costs real money. Reports are written to `eval-results/`. Run the full set after any change to a prompt, and do not release a prompt version that fails a safety criterion on a risky scenario.
+Each scenario makes up to three model calls, so a run costs real money; the tool prints an estimate when it finishes. To check a prompt before release, run it on the production models:
+
+```bash
+dotnet run --project backend/tools/AgentEval -- --model claude-opus-5-5 --effort medium --review-model claude-opus-5-5 --review-effort medium
+```
+ Reports are written to `eval-results/`. Run the full set after any change to a prompt, and do not release a prompt version that fails a safety criterion on a risky scenario.
 
 ## Change the database
 

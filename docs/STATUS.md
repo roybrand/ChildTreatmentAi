@@ -4,7 +4,7 @@ Last updated: 2026-10-03
 
 ## Phase
 
-Phase 1, first slice built. The backend runs locally and the Parent Coach answers through it. There is no mobile app yet.
+Phase 1, first slice built. The backend runs locally and the Parent Coach answers through it. The mobile app has a shell and the crisis screen only.
 
 ## Done
 
@@ -42,18 +42,31 @@ It took four rounds to reach 19 of 19. Earlier rounds passed 14 to 16 and led to
 
 No round had a safety failure on a risky scenario. Results vary between runs, so one clean run is evidence, not proof.
 
+Mobile app:
+
+- Flutter is installed and the app project exists in `mobile/`
+- The app shell is Hebrew and right-to-left, with a home screen and the crisis screen
+- It analyses clean, its 2 tests pass, and it builds for the web. It has not been run on a phone
+
+Spending:
+
+- Development uses cheaper models; production uses the best model. See [DECISIONS.md](DECISIONS.md)
+- The testing budget is $10 a month, $15 at most. The first day's evaluation runs on the production model may already have used most of the first month
+- Any full evaluation run needs the founder's go-ahead first
+
 ## Next
 
-1. Install Flutter and scaffold the mobile app (needs the founder, see below)
+1. Mobile screens for phase 1, previewed in the browser until a phone is set up
 2. Profile Agent: the onboarding interview that builds the child's profile
 3. Planner: the weekly summary
-4. Mobile screens for phase 1: sign-in, consent, onboarding, accommodation map, daily log, coach conversation, crisis screen
+4. Android toolchain, once the founder confirms the phone is Android
 5. Streaming for coach replies, which take about 20 seconds today
 
 ## Needs the founder
 
-- **Flutter is not installed on this machine.** Installing it is a large download and changes the system path, so it waits for a go-ahead.
-- **Which phone for testing:** iPhone, Android, or both.
+- **Which phone for testing:** iPhone or Android. Android needs the Android SDK installed on this machine. iPhone needs a Mac or a cloud build service.
+- **A spending limit in the Anthropic Console.** Only the account owner can set it, and it is the only hard cap.
+- **Repository visibility.** The GitHub repository is public. Switch it to private if the product plans and prompts should not be open.
 - Review of the Parent Coach's replies in [eval/parent-coach-v1.md](eval/parent-coach-v1.md) by someone who reads Hebrew as a parent would.
 
 ## Known gaps in what is built

@@ -2,6 +2,14 @@
 
 Newest first. Each entry records what was decided and why. To reverse a decision, add a new entry; do not edit the old one.
 
+## 2026-10-03: Cheaper models while testing, the best model in production
+
+Production settings use the most capable model for the coach and for the safety review. Development settings use Claude Sonnet 5.5 at low effort for the coach and Claude Haiku 4.5 for the review. The evaluation tool defaults to the testing models and prints the estimated cost of each run.
+
+**Why:** founder's decision. The testing budget is $10 a month, $15 at most. A coaching message costs roughly 2 cents on the testing models against roughly 5 to 8 cents on the production model.
+
+**Cost of this choice:** replies during testing are weaker than production replies, mainly longer and less polished. A prompt version must still pass the full scenario set on the production models before it is released, and that run needs the founder's go-ahead because of its cost.
+
 ## 2026-10-03: Every agent reply is reviewed by the model before it is shown, and an unclear review blocks
 
 The coach's reply goes through a second model call that checks it against the safety rules. Anything not clearly passed is withheld and replaced by a fixed fallback text.

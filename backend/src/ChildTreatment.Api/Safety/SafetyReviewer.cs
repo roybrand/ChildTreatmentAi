@@ -30,6 +30,7 @@ public sealed class SafetyReviewer(ILlmClient llm, PromptStore prompts, ILogger<
     {
         var result = await llm.CompleteAsync(new LlmRequest
         {
+            Tier = LlmTier.Review,
             System = prompts.Get("safety-review").Text,
             Messages =
             [

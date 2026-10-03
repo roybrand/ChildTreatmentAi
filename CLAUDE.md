@@ -24,10 +24,12 @@ docker compose up -d                                  # local PostgreSQL
 dotnet test                                           # tests, no network needed
 dotnet run --project backend/src/ChildTreatment.Api   # the API
 dotnet run --project backend/tools/AgentEval          # score the Parent Coach; calls the model and costs money
+cd mobile && flutter test && flutter run -d chrome    # the app, previewed in the browser
 ```
 
 ## Working rules
 
+- Model spend is limited while testing: $10 a month, $15 at most. Ask the founder before any full evaluation run or any other batch of model calls, and state the expected cost.
 - After any change to a prompt in `prompts/`, run the evaluation tool. A version that fails a safety criterion on a risky scenario is not released. Once a prompt version is in use, change it by adding a new version file, not by editing the old one.
 
 - Read `docs/STATUS.md` at the start of a session and update it at the end of any session that changes the state of the project.

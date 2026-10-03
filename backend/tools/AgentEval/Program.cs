@@ -1,6 +1,8 @@
 // Runs the Parent Coach against its scenario set and scores every reply.
 // Usage: dotnet run --project backend/tools/AgentEval [-- --group risky] [-- --id ord-01-first-session-no-map]
-// Every run calls the model and costs money: about three calls per scenario.
+//        [-- --model claude-opus-5-5 --effort medium --review-model claude-opus-5-5 --review-effort medium]
+// Every run calls the model and costs money: about three calls per scenario. The defaults are the
+// cheaper testing models; pass the production models before releasing a prompt version.
 
 using System.Text;
 using System.Text.Encodings.Web;
@@ -19,7 +21,14 @@ string? idFilter = ArgValue("--id");
 var repoRoot = FindRepoRoot();
 var promptsRoot = Path.Combine(repoRoot, "prompts");
 var prompts = new PromptStore(new PromptOptions { Root = promptsRoot });
-var llm = new AnthropicLlmClient(Options.Create(new LlmOptions()), NullLogger<AnthropicLlmClient>.Instance);
+var llmOptions = new LlmOptions
+{
+    Model = ArgValue("--model") ?? "claude-sonnet-5-5",
+    Effort = ArgValue("--effort") ?? "low",
+    ReviewModel = ArgValue("--review-model") ?? "claude-haiku-4-5",
+    ReviewEffort = ArgValue("--review-effort") ?? "",
+};
+var llm = new CountingLlm(new AnthropicLlmClient(Options.Create(llmOptions), NullLogger<AnthropicLlmClient>.Instance));
 var agent = new ParentCoachAgent(
     llm, prompts, CrisisRules.Load(promptsRoot), new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance));
 
@@ -34,6 +43,7 @@ var scenarios = scenarioFile.Scenarios
     .ToList();
 
 Console.WriteLine($"Running {scenarios.Count} scenarios against {prompts.Get(ParentCoachAgent.AgentName).Version}");
+Console.WriteLine($"Coach and judge: {llmOptions.Model}. Review: {llmOptions.ReviewModel}.");
 
 var results = new ScenarioResult[scenarios.Count];
 await Parallel.ForEachAsync(
@@ -69,6 +79,7 @@ var riskyFailed = failed
 Console.WriteLine();
 Console.WriteLine($"Passed {results.Length - failed.Count} of {results.Length}. Safety failures on risky scenarios: {riskyFailed.Count}.");
 Console.WriteLine($"Report: {Path.Combine(outputDir, baseName + ".md")}");
+Console.WriteLine(llm.Summary());
 
 // A prompt version that fails any risky scenario is not released.
 return riskyFailed.Count > 0 ? 1 : 0;
@@ -194,6 +205,48 @@ static string FindRepoRoot()
     while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "ChildTreatmentAi.sln")))
         dir = dir.Parent;
     return dir?.FullName ?? throw new DirectoryNotFoundException("Could not find the repository root.");
+}
+
+/// <summary>Adds up tokens per model so each run reports what it cost.</summary>
+sealed class CountingLlm(ILlmClient inner) : ILlmClient
+{
+    // US dollars per million tokens (input, output). Update when prices change.
+    private static readonly Dictionary<string, (decimal In, decimal Out)> Prices = new()
+    {
+        ["claude-opus-5-5"] = (4m, 20m),
+        ["claude-sonnet-5-5"] = (2m, 10m),
+        ["claude-haiku-4-5"] = (1m, 5m),
+    };
+
+    private readonly Dictionary<string, (long Calls, long In, long Out)> _usage = [];
+
+    public async Task<LlmResult> CompleteAsync(LlmRequest request, CancellationToken ct = default)
+    {
+        var result = await inner.CompleteAsync(request, ct);
+        lock (_usage)
+        {
+            var current = _usage.GetValueOrDefault(result.Model);
+            _usage[result.Model] = (current.Calls + 1, current.In + result.InputTokens, current.Out + result.OutputTokens);
+        }
+        return result;
+    }
+
+    public string Summary()
+    {
+        var sb = new StringBuilder();
+        var total = 0m;
+        var allPriced = true;
+        foreach (var (model, usage) in _usage)
+        {
+            sb.AppendLine($"  {model}: {usage.Calls} calls, {usage.In} input tokens, {usage.Out} output tokens");
+            if (Prices.TryGetValue(model, out var price))
+                total += usage.In / 1_000_000m * price.In + usage.Out / 1_000_000m * price.Out;
+            else
+                allPriced = false;
+        }
+        sb.Append(allPriced ? $"Estimated cost of this run: ${total:0.00}" : "Cost not estimated: no price listed for one of the models.");
+        return "Model usage:" + Environment.NewLine + sb;
+    }
 }
 
 record ScenarioFile(List<Scenario> Scenarios);
