@@ -14,12 +14,20 @@ public sealed class LlmOptions
     /// <summary>The model that reviews a reply before it is shown.</summary>
     public string ReviewModel { get; set; } = "claude-opus-5-5";
     public string ReviewEffort { get; set; } = "medium";
+    /// <summary>
+    /// The model provider's key. Set it only in appsettings.Development.json, which git ignores,
+    /// never in appsettings.json. Empty falls back to the ANTHROPIC_API_KEY environment variable.
+    /// </summary>
+    public string ApiKey { get; set; } = "";
 }
 
 public sealed class AnthropicLlmClient(IOptions<LlmOptions> options, ILogger<AnthropicLlmClient> logger) : ILlmClient
 {
-    // Reads ANTHROPIC_API_KEY from the environment. The key never leaves the server.
-    private readonly AnthropicClient _client = new();
+    // The key comes from Llm:ApiKey in settings, or from ANTHROPIC_API_KEY in the environment
+    // when that is empty. The key never leaves the server.
+    private readonly AnthropicClient _client = string.IsNullOrWhiteSpace(options.Value.ApiKey)
+        ? new AnthropicClient()
+        : new AnthropicClient { ApiKey = options.Value.ApiKey };
     private readonly LlmOptions _options = options.Value;
 
     public async Task<LlmResult> CompleteAsync(LlmRequest request, CancellationToken ct = default)
