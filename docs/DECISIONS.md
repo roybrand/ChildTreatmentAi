@@ -2,6 +2,22 @@
 
 Newest first. Each entry records what was decided and why. To reverse a decision, add a new entry; do not edit the old one.
 
+## 2026-10-03: The weekly summary is asked for by the parent, and its numbers are counted by code
+
+The parent asks for the week's summary with a button. It covers the last seven days of the log, needs at least two log entries, and is written at most once a day. The count of entries and the parent's average mood, this week and the week before, are counted by code and shown next to the written summary. A pattern the Planner does not clearly mark as observed is shown as a guess. The Planner proposes and never changes the plan.
+
+**Why:** a scheduled summary for every family is a model call nobody asked for, and the testing budget is small. Numbers counted by code cannot be written away, which is how "never hide a decline" is enforced and not only requested in the prompt. Decided by Claude; the founder can overrule it.
+
+**Not done yet:** a scheduled summary with a reminder, and giving the latest summary to the Parent Coach.
+
+## 2026-10-03: What the Profile Agent writes down waits for the parent
+
+During the onboarding interview the Profile Agent writes down what the parent said as profile items. Each item is shown to the parent at once and stays a suggestion until the parent accepts it. The coach and the Planner use only accepted items. A rejected item is kept, hidden, so it is not proposed again. What the parent types into the profile directly is accepted from the start. The first interview question is fixed text written by people, so the interview opens without a model call.
+
+**Why:** the profile shapes how every agent speaks about the child, and the agent's wording of what a parent said can be wrong. A wrong line about a child, most of all a condition nobody diagnosed, must not become a fact because a model wrote it. The cost is one tap per item. Decided by Claude; the founder can overrule it.
+
+**Also decided:** the Profile Agent does not record medication names or doses, other people's names, or a school's name, and writes a condition down only when the parent says a professional diagnosed it.
+
 ## 2026-10-03: The app also runs in a browser, for parent and young person
 
 The same Flutter code is built as a responsive web app as well as a phone app. Both the parent's side and the young person's side are supported in the browser. This reverses "a web version is out of scope" and revises the Flutter entry below, which chose a phone app over a web app. The phone app stays, and stays the place for reminders and alerts.

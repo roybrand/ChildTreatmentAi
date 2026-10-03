@@ -35,10 +35,12 @@ public class CrisisRulesTests
         Assert.Null(_rules.Check(text));
     }
 
-    [Fact]
-    public void The_rules_stop_exactly_the_scenarios_marked_as_crisis()
+    [Theory]
+    [InlineData("parent-coach")]
+    [InlineData("profile-agent")]
+    public void The_rules_stop_exactly_the_scenarios_marked_as_crisis(string agent)
     {
-        var scenarios = TestSupport.Scenarios();
+        var scenarios = TestSupport.Scenarios(agent);
         Assert.Contains(scenarios, s => s.Expect == "crisis");
 
         foreach (var scenario in scenarios)

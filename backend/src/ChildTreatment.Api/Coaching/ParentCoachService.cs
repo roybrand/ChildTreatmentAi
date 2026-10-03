@@ -148,7 +148,7 @@ public sealed class ParentCoachService(
 
         var since = now - SafetyNoteWindow;
         var lastCrisis = await db.SafetyEvents
-            .Where(e => e.ChildId == child.Id && e.Source != SafetySource.CoachOutput && e.CreatedAt >= since)
+            .Where(e => e.ChildId == child.Id && SafetyEvent.CrisisSources.Contains(e.Source) && e.CreatedAt >= since)
             .OrderByDescending(e => e.CreatedAt)
             .FirstOrDefaultAsync(ct);
 
@@ -168,7 +168,7 @@ public sealed class ParentCoachService(
         };
     }
 
-    private static string FormatLogEntry(ParentLogEntry entry, Pseudonymizer names)
+    public static string FormatLogEntry(ParentLogEntry entry, Pseudonymizer names)
     {
         var parts = new List<string> { $"{entry.Date:yyyy-MM-dd}: {names.Hide(entry.WhatHappened)}" };
         if (!string.IsNullOrWhiteSpace(entry.ChildReaction))

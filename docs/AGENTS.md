@@ -1,6 +1,6 @@
 # Agents
 
-Status: design. No agent is built yet. This file defines how many agents there are, what each one does, and how we build and improve them.
+Status: the Parent Coach, the Profile Agent's interview, the Planner's weekly summary, and the Safety Guard are built. The Skills Guide and the Tutor are design only. This file defines how many agents there are, what each one does, and how we build and improve them.
 
 ## What "agent" means here
 
@@ -166,6 +166,8 @@ Mathematics is the first subject.
 
 **Good looks like.** A new agent session can read the profile and immediately speak to this child as someone who knows them.
 
+**As built.** The onboarding interview, prompt `profile-agent/v1`. The first question is fixed text. Each turn returns the next question and the items written down from the parent's last message. Items are stored as suggestions and shown to the parent at once to accept or reject. Crisis rules run on every parent message before the model, and the safety review reads both the question and the items. Not built yet: follow-up questions outside the interview, suggestions drawn from the event log, the teen's "about me", and the child's grammatical gender.
+
 ## 5. Planner
 
 **Purpose.** Keep the plan fitted to what is really happening. This is the dynamic adaptation of lessons and treatment.
@@ -196,6 +198,8 @@ The rule behind the table: easing off is automatic, stepping up needs a person.
 **Must never.** Raise difficulty or pace on its own, hide a decline, or present a guess as a finding.
 
 **Good looks like.** The parent reads the summary and recognises their week in it, and the plan for next week feels right-sized.
+
+**As built.** The weekly summary only, prompt `planner/v1`. The parent asks for it; it reads the confirmed profile, the accommodations, and the last seven days of the log. The entry count and mood averages are counted by code and shown beside the text. The summary passes the safety review, which also reads the week's log, before it is stored or shown. Not built yet: a scheduled summary, plan adaptation, and check-in data, which arrives with phase 2.
 
 ## Safety Guard
 

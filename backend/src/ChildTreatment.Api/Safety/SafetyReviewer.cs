@@ -24,14 +24,20 @@ public sealed class SafetyReviewer(ILlmClient llm, PromptStore prompts, ILogger<
         ["additionalProperties"] = JsonSerializer.SerializeToElement(false),
     };
 
+    public const string ConversationRules = "safety-review";
+    /// <summary>Rules for a weekly summary, where the parent's words are a week of log entries.</summary>
+    public const string SummaryRules = "summary-review";
+
     /// <param name="context">What the agent was told about the family, so a reported condition is not mistaken for a diagnosis.</param>
+    /// <param name="rules">Which review prompt to apply.</param>
     public async Task<ReviewResult> ReviewAsync(
-        string context, string parentMessage, string reply, CancellationToken ct = default)
+        string context, string parentMessage, string reply, CancellationToken ct = default,
+        string rules = ConversationRules)
     {
         var result = await llm.CompleteAsync(new LlmRequest
         {
             Tier = LlmTier.Review,
-            System = prompts.Get("safety-review").Text,
+            System = prompts.Get(rules).Text,
             Messages =
             [
                 new LlmMessage(LlmRole.User,

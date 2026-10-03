@@ -8,10 +8,12 @@ import '../widgets/responsive.dart';
 import 'accommodations_screen.dart';
 import 'coach_screen.dart';
 import 'log_screen.dart';
+import 'profile_screen.dart';
+import 'summary_screen.dart';
 
 enum _MenuAction { signOut, delete }
 
-/// The signed-in app: coach, daily log, and accommodation map for one child.
+/// The signed-in app for one child: coach, daily log, accommodation map, profile, and weekly summary.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key, required this.state});
 
@@ -77,6 +79,8 @@ class _HomeScreenState extends State<HomeScreen> {
           CoachScreen(api: api, child: child),
           LogScreen(api: api, child: child),
           AccommodationsScreen(api: api, child: child),
+          ProfileScreen(api: api, child: child),
+          SummaryScreen(api: api, child: child),
         ],
       ),
     );
@@ -107,6 +111,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     NavigationRailDestination(icon: Icon(Icons.chat_bubble_outline), label: Text(Strings.tabCoach)),
                     NavigationRailDestination(icon: Icon(Icons.edit_note), label: Text(Strings.tabLog)),
                     NavigationRailDestination(icon: Icon(Icons.map_outlined), label: Text(Strings.tabMap)),
+                    NavigationRailDestination(icon: Icon(Icons.person_outline), label: Text(Strings.tabProfile)),
+                    NavigationRailDestination(icon: Icon(Icons.insights_outlined), label: Text(Strings.tabSummary)),
                   ],
                 ),
                 const VerticalDivider(width: 1),
@@ -123,6 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: Strings.tabCoach),
                 NavigationDestination(icon: Icon(Icons.edit_note), label: Strings.tabLog),
                 NavigationDestination(icon: Icon(Icons.map_outlined), label: Strings.tabMap),
+                NavigationDestination(icon: Icon(Icons.person_outline), label: Strings.tabProfile),
+                NavigationDestination(icon: Icon(Icons.insights_outlined), label: Strings.tabSummary),
               ],
             ),
     );

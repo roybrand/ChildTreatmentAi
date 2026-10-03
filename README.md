@@ -7,7 +7,7 @@ An app that helps families of children and teens with anxiety. Start with [CLAUD
 | Folder | Contents |
 | --- | --- |
 | `docs/` | Product, architecture, agents, safety, privacy, status, decisions |
-| `prompts/` | Agent prompts, the Parent Coach scenario set and scoring guide, the crisis rules |
+| `prompts/` | Agent prompts, each agent's scenario set and scoring guide, the crisis rules |
 | `backend/src/ChildTreatment.Api/` | The ASP.NET Core API |
 | `backend/tests/` | Tests. They use a fake model and need no network |
 | `backend/tools/AgentEval/` | Runs an agent against its scenario set and scores the replies |
@@ -63,13 +63,17 @@ dotnet test                      # backend
 cd mobile && flutter test        # app
 ```
 
-## Evaluate the Parent Coach
+## Evaluate an agent
 
 ```bash
-dotnet run --project backend/tools/AgentEval                     # every scenario, on the cheaper testing models
-dotnet run --project backend/tools/AgentEval -- --group risky    # one group
+dotnet run --project backend/tools/AgentEval                            # the Parent Coach, every scenario, on the cheaper testing models
+dotnet run --project backend/tools/AgentEval -- --agent profile-agent   # or planner
+dotnet run --project backend/tools/AgentEval -- --group risky           # one group
 dotnet run --project backend/tools/AgentEval -- --id risk-01-medication
+dotnet run --project backend/tools/AgentEval -- --agent planner --list  # show the scenarios without running them; free
 ```
+
+Stop the API first if it is running: both build into the same folder.
 
 Each scenario makes up to three model calls, so a run costs real money; the tool prints an estimate when it finishes. To check a prompt before release, run it on the production models:
 

@@ -53,6 +53,8 @@ class Strings {
   static const tabCoach = 'מאמן';
   static const tabLog = 'יומן';
   static const tabMap = 'מפה';
+  static const tabProfile = 'פרופיל';
+  static const tabSummary = 'סיכום';
   static const menuSignOut = 'יציאה';
   static const menuDelete = 'מחיקת החשבון וכל המידע';
   static const deleteConfirmTitle = 'למחוק הכול?';
@@ -91,6 +93,47 @@ class Strings {
   static const mapMarkReduced = 'סימון כצומצם';
   static const mapBackToActive = 'החזרה לרשימה';
   static const mapOneAtATime = 'עובדים על דבר אחד בכל פעם. סיימו או החזירו את הנוכחי לפני שבוחרים חדש.';
+
+  // Profile
+  static const profileEmpty =
+      'כאן נשמר מה שהאפליקציה יודעת על הילד/ה. שיחת היכרות קצרה עוזרת למאמן להתאים את עצמו למשפחה שלכם.';
+  static const profileInterview = 'שיחת היכרות';
+  static const profileAdd = 'הוספה לפרופיל';
+  static const profileSection = 'נושא';
+  static const profileItemText = 'מה כדאי שנדע?';
+  static const profileWaiting = 'נרשם מהשיחה. זה נכון?';
+  static const profileAccept = 'נכון';
+  static const profileReject = 'לא נכון';
+  static const profileRemove = 'הסרה מהפרופיל';
+  static const profileSections = {
+    'StrengthsAndInterests': 'חוזקות ותחומי עניין',
+    'AnxietyPicture': 'תמונת החרדה',
+    'WhatCalms': 'מה מרגיע',
+    'LearningPicture': 'למידה',
+    'OtherConditions': 'אבחנות של איש מקצוע',
+    'FamilyContext': 'ההקשר המשפחתי',
+    'WhatHasWorked': 'מה עבד',
+  };
+  static const interviewHint = 'כתבו תשובה';
+  static const interviewThinking = 'רושמים את התשובה. זה יכול לקחת עד חצי דקה.';
+  static const interviewComplete = 'שיחת ההיכרות הסתיימה. אפשר להמשיך לכתוב ולהוסיף בכל רגע.';
+
+  // Weekly summary
+  static const summaryEmpty =
+      'כאן יופיע סיכום של השבוע מתוך היומן: מה קרה, מה חוזר על עצמו, מה עזר, והצעה לשבוע הבא.';
+  static const summaryCreate = 'סיכום השבוע';
+  static const summaryWorking = 'מכינים את הסיכום. זה יכול לקחת עד דקה.';
+  static const summaryExisting = 'הסיכום של היום כבר מוכן.';
+  static const summaryEntries = 'רשומות ביומן';
+  static const summaryMood = 'מצב הרוח שלך, מ-1 עד 5';
+  static const summaryPreviousMood = 'בשבוע הקודם';
+  static const summaryWhatHappened = 'מה קרה';
+  static const summaryPatterns = 'מה חוזר על עצמו';
+  static const summaryObserved = 'מהיומן';
+  static const summaryGuess = 'השערה';
+  static const summaryWhatWorked = 'מה עזר';
+  static const summaryProposal = 'הצעה לשבוע הבא';
+  static const summaryNote = 'הסיכום נכתב על ידי בינה מלאכותית מתוך היומן שלך. המספרים נספרו מהיומן.';
 
   // Crisis
   static const crisisButton = 'עזרה דחופה';

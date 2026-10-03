@@ -2,6 +2,8 @@ using System.Text.Json;
 using ChildTreatment.Api.Coaching;
 using ChildTreatment.Api.Data;
 using ChildTreatment.Api.Llm;
+using ChildTreatment.Api.Onboarding;
+using ChildTreatment.Api.Planning;
 using ChildTreatment.Api.Safety;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -16,6 +18,7 @@ public sealed class FakeLlm : ILlmClient
     public const string ReviewBlock = """{"verdict":"block","rules":[2],"reason":"Medication advice."}""";
 
     public List<LlmRequest> Requests { get; } = [];
+    /// <summary>What the agent under test answers: plain text for the coach, JSON for the other agents.</summary>
     public string CoachReply { get; set; } = "תשובה של המאמן ל[CHILD]";
     public string Review { get; set; } = ReviewPass;
     public bool Refuse { get; set; }
@@ -27,13 +30,13 @@ public sealed class FakeLlm : ILlmClient
         if (Throw is not null)
             throw Throw;
 
-        var isReview = request.JsonSchema is not null;
-        if (isReview)
+        if (request.Tier == LlmTier.Review)
             return Task.FromResult(new LlmResult(Review, false));
         return Task.FromResult(Refuse ? new LlmResult("", true) : new LlmResult(CoachReply, false));
     }
 
-    public IEnumerable<LlmRequest> CoachRequests => Requests.Where(r => r.JsonSchema is null);
+    public IEnumerable<LlmRequest> CoachRequests => Requests.Where(r => r.Tier == LlmTier.Main);
+    public IEnumerable<LlmRequest> ReviewRequests => Requests.Where(r => r.Tier == LlmTier.Review);
 
     /// <summary>Everything a request carried, joined, for asserting on what reached the model.</summary>
     public static string AllText(LlmRequest request) =>
@@ -64,6 +67,20 @@ public static class TestSupport
         return new ParentCoachAgent(llm, prompts, Rules(), new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance));
     }
 
+    public static ProfileAgent ProfileAgent(FakeLlm llm)
+    {
+        var prompts = Prompts();
+        return new ProfileAgent(llm, prompts, Rules(),
+            new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance), NullLogger<ProfileAgent>.Instance);
+    }
+
+    public static WeeklySummaryAgent SummaryAgent(FakeLlm llm)
+    {
+        var prompts = Prompts();
+        return new WeeklySummaryAgent(llm, prompts,
+            new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance), NullLogger<WeeklySummaryAgent>.Instance);
+    }
+
     public static readonly FieldProtector Protector = new(new byte[32]);
 
     /// <summary>A context on a named in-memory database, acting for the given family.</summary>
@@ -75,9 +92,10 @@ public static class TestSupport
 
     public static FakeTimeProvider Clock() => new(new DateTimeOffset(2026, 10, 3, 9, 0, 0, TimeSpan.Zero));
 
-    public static List<ScenarioSummary> Scenarios()
+    /// <summary>The scenarios of an agent that holds a conversation with the parent.</summary>
+    public static List<ScenarioSummary> Scenarios(string agent = "parent-coach")
     {
-        var path = Path.Combine(PromptsRoot, "parent-coach", "scenarios.json");
+        var path = Path.Combine(PromptsRoot, agent, "scenarios.json");
         using var doc = JsonDocument.Parse(File.ReadAllText(path));
         return doc.RootElement.GetProperty("scenarios").EnumerateArray()
             .Select(s => new ScenarioSummary(

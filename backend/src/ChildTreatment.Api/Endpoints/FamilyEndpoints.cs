@@ -64,6 +64,8 @@ public static class FamilyEndpoints
                 accommodations = await db.Accommodations.ToListAsync(),
                 log = await db.ParentLogEntries.ToListAsync(),
                 coaching = await db.CoachingMessages.OrderBy(m => m.CreatedAt).ToListAsync(),
+                interview = await db.InterviewMessages.OrderBy(m => m.CreatedAt).ToListAsync(),
+                weeklySummaries = await db.WeeklySummaries.OrderBy(s => s.CreatedAt).ToListAsync(),
                 safetyEvents = await db.SafetyEvents.ToListAsync(),
             });
         });

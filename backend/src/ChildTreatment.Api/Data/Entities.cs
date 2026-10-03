@@ -118,11 +118,58 @@ public class CoachingMessage : IFamilyOwned
     public DateTimeOffset CreatedAt { get; set; }
 }
 
-public enum SafetySource { CoachInput, CoachOutput, ParentLog }
+/// <summary>One turn of the onboarding interview between the parent and the Profile Agent.</summary>
+public class InterviewMessage : IFamilyOwned
+{
+    public Guid Id { get; set; }
+    public Guid FamilyId { get; set; }
+    public Guid ChildId { get; set; }
+    /// <summary>Coach here means the Profile Agent's side of the interview.</summary>
+    public CoachingRole Role { get; set; }
+    public CoachingMessageKind Kind { get; set; }
+    [Encrypted] public string Text { get; set; } = "";
+    /// <summary>True on the agent message that closed the interview.</summary>
+    public bool Completes { get; set; }
+    public string? PromptVersion { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+/// <summary>The Planner's summary of one week, as shown to the parent.</summary>
+public class WeeklySummary : IFamilyOwned
+{
+    public Guid Id { get; set; }
+    public Guid FamilyId { get; set; }
+    public Guid ChildId { get; set; }
+    public DateOnly WeekStart { get; set; }
+    public DateOnly WeekEnd { get; set; }
+    /// <summary>The written summary, as JSON (see WeeklySummaryContent).</summary>
+    [Encrypted] public string Content { get; set; } = "";
+    // Counted by code from the log, never by the model, so a decline cannot be written away.
+    public int LogEntries { get; set; }
+    public double? MoodAverage { get; set; }
+    public double? PreviousMoodAverage { get; set; }
+    public string PromptVersion { get; set; } = "";
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
+// Stored as numbers: add new values at the end only.
+public enum SafetySource
+{
+    CoachInput,
+    CoachOutput,
+    ParentLog,
+    ProfileInterviewInput,
+    ProfileInterviewOutput,
+    WeeklySummaryOutput,
+}
 
 /// <summary>A record that the Safety Guard acted. It holds the category only, never the text.</summary>
 public class SafetyEvent : IFamilyOwned
 {
+    /// <summary>Sources where a person's own words matched the crisis rules and the crisis screen was shown.</summary>
+    public static readonly SafetySource[] CrisisSources =
+        [SafetySource.CoachInput, SafetySource.ParentLog, SafetySource.ProfileInterviewInput];
+
     public Guid Id { get; set; }
     public Guid FamilyId { get; set; }
     public Guid? ChildId { get; set; }

@@ -52,6 +52,8 @@ Every LLM call goes through one module. It is responsible for:
 
 As built: production settings use `claude-opus-5-5` for the coach and the review. Development settings use cheaper models to keep testing costs down. Every call logs its model and token counts. A coach reply takes about 20 seconds because the reply and its safety review are two calls made one after the other, without streaming. When the model declines a request, the parent sees a safe fallback text; automatic fallback to another model is not enabled.
 
+Three agents are built the same way: `ParentCoachAgent`, `ProfileAgent`, and `WeeklySummaryAgent`. Each is a class with no database access, so the API and the evaluation tool run the same code. Each has a service beside it that loads what the agent may see, hides names, and stores the result. The Profile Agent and the Planner return structured output against a JSON schema; code drops anything outside the schema's limits before it is stored.
+
 The app never calls the LLM directly, and no API key is ever shipped inside the app.
 
 ## App
@@ -89,7 +91,9 @@ Decline detection is rule-based code, not an LLM judgement. It reads check-in sc
 | `CoachingMessage` | Agent and parent turns in a coaching session |
 | `BraveLadder`, `BraveStep`, `StepAttempt` | The ladder, its steps, and each try |
 | `CheckIn` | Young person's mood entry, with optional private note |
-| `WeeklySummary` | Generated summary and the prompt version that produced it |
+| `InterviewMessage` | Parent and Profile Agent turns in the onboarding interview |
+| `ProfileItem` | One fact about the child, by section, confirmed by the parent or waiting for them |
+| `WeeklySummary` | Generated summary, the numbers counted from the log, and the prompt version that produced it |
 | `Alert` | Safety monitor output and whether the parent has seen it |
 | `AuditLog` | Who read or changed sensitive data |
 

@@ -17,6 +17,9 @@ Built and working:
 
 - Backend API: sign-up and sign-in, consent, child profiles, profile items, accommodation map, daily log, coaching conversation, export and delete of all family data
 - Parent Coach agent, prompt version `parent-coach/v1`
+- Profile Agent: the onboarding interview, prompt version `profile-agent/v1`. It asks one question at a time and writes down what the parent said; each item waits for the parent to accept it. **It has not passed its evaluation yet**
+- Planner: the weekly summary, prompt version `planner/v1`, asked for by the parent. The numbers beside it are counted by code. It has its own review prompt, `summary-review/v1`. **It has not passed its evaluation yet**
+- Scenario sets and scoring guides for both new agents (14 and 10 scenarios), and an evaluation tool that scores any of the three agents
 - Safety Guard, both layers: crisis rules in code before the model, and a model review of every reply before it is shown
 - Family isolation enforced in the data layer, and field-level encryption of sensitive text
 - Names replaced with placeholders before text goes to the model
@@ -24,7 +27,7 @@ Built and working:
 
 Verified:
 
-- 43 automated tests pass
+- 63 automated backend tests pass. They use a fake model, so they check the code around the new agents and not what the agents write
 - An end-to-end run against the real model and a real PostgreSQL database worked: coaching reply, crisis screen, export, delete
 - Sensitive text was confirmed encrypted in the database
 - The Parent Coach passed all 19 scenarios on the final prompt. The report is in [eval/parent-coach-v1.md](eval/parent-coach-v1.md)
@@ -42,13 +45,36 @@ It took four rounds to reach 19 of 19. Earlier rounds passed 14 to 16 and led to
 
 No round had a safety failure on a risky scenario. Results vary between runs, so one clean run is evidence, not proof.
 
+## What the evaluation of the two new agents showed
+
+Run on 2026-10-03 on the testing models, about $1.70 in total. Reports are in `eval-results/`, which git ignores. Neither agent has passed.
+
+The main finding is that the measurement itself is noisy on the testing models. With the same prompt, the Profile Agent scored 11 of 14 in one round and 7 of 14 in the next. The scorer often failed a criterion while its own note said the reply was acceptable, and the review on the smallest model withheld replies that read correctly. More prompt changes on these models will not settle it; a run on the production models would, at an expected cost of about $1.10 for both agents.
+
+Profile Agent, three rounds: 6, 11, and 7 of 14. Safety failures on risky scenarios: 2, 0, and 1. The one in the last round was the review withholding the reply to a parent who described dragging the child to school, so the parent would have seen the fixed fallback text. The first round led to these fixes:
+
+- A placeholder for the parent's name reached the parent as literal text; the agent now addresses the parent as "you"
+- It guessed the parent's gender; it now uses the plural when the parent's words do not show it
+- Replies were too long, and it passed over a parent who described dragging the child to school; it now says in one sentence that force tends to make fear stronger and points to the coach
+
+In the last round the agent's own replies held up when read by hand: one question each, items in the parent's words, no condition named, no medication recorded.
+
+Planner, four rounds: 5, 3, 4, and 4 of 10, with 2 safety failures on risky scenarios each time. It is not ready.
+
+- The coach's review prompt blocked ordinary hard weeks as "missed danger", so the summary now has its own review prompt
+- In the last round all three failures on risky and hard scenarios that were not scored were summaries withheld by the review: three days at home after a good start, a parent who carried the child into class, and a good week where the parent wants to move faster. A withheld summary shows the parent a fixed text, which is safe and is still a failure
+- The testing model makes Hebrew slips in longer text: a wrong word, a garbled phrase, the coach written in the feminine. The production model may do better; that has not been tried
+
+The same caution applies as above: results vary between runs.
+
 Mobile app:
 
 - Flutter, a JDK, and the Android SDK are installed on the development machine
 - Phase 1 screens are built, in Hebrew and right-to-left: sign-in and registration, consent, add a child, coach conversation, daily log, accommodation map, crisis screen, sign-out and delete-everything
 - The crisis screen is reachable from every screen, including before sign-in, and works with no connection
 - Sign-in tokens are kept in the phone's secure storage and renewed automatically
-- Code analysis is clean and 12 app tests pass, covering the path from registration to the coach, the crisis reply, both layouts, and the automatic sign-out
+- Two more screens: the profile, with the interview and accept or reject for each item, and the weekly summary
+- Code analysis is clean and 14 app tests pass, covering the path from registration to the coach, the crisis reply, the interview, the summary, both layouts, and the automatic sign-out
 - The Android debug build succeeds. It has not yet been installed on a phone
 - The API was checked with the same calls the app makes
 - Nobody has yet looked at the screens on a phone or in a browser. Layout and wording need the founder's eyes
@@ -70,11 +96,12 @@ Spending:
 
 ## Next
 
-1. Founder runs the app in a browser and on their Android phone and reports what looks or reads wrong
-2. Profile Agent: the onboarding interview that builds the child's profile
-3. Planner: the weekly summary
-4. Profile screen in the app: the parent adds and edits what the coach knows about the child
+1. Run both new agents' evaluations on the production models to get a reading that can be trusted. Needs the founder's go-ahead; about $1.10 for both
+2. Founder runs the app in a browser and on their Android phone and reports what looks or reads wrong
+3. Give the Parent Coach the latest weekly summary, then re-run its evaluation
+4. Store the child's grammatical gender, asked in the interview
 5. Streaming for coach replies, which take about 20 seconds today
+6. Phase 2: the young person's check-in, calming tools, and brave steps
 
 ## Needs the founder
 
@@ -91,7 +118,11 @@ Spending:
 - The model's refusal fallback to another model is not enabled; a refusal shows the safe fallback text
 - The crisis phrase list and all prompts are drafts with no clinical review
 - No rate limiting, no email confirmation, no password reset screen, no production hosting or secrets management
-- The app has no screen yet for profile items, exporting data, or switching between children
+- The coach's prompt still names a placeholder for the parent, which the app never fills in. If the coach uses it, the parent sees the literal text. Fixing it means a new coach prompt version and a full evaluation run
+- The safety review prompt written for the coach is reused unchanged for the interview
+- The weekly summary is not scheduled and has no reminder, and a summary withheld by the review can be asked for again at once, which costs two model calls each time
+- The week runs on the server's date in UTC, so near midnight in Israel the seven days can be off by one
+- The app has no screen yet for exporting data or switching between children
 - The consent text in the app is a draft, not reviewed by a lawyer
 - The emergency contacts are written both in the app and on the server and must be kept in step by hand
 - Signing out, by hand or automatically, removes the tokens from the device but does not cancel them on the server

@@ -55,7 +55,7 @@ public sealed class ParentCoachAgent(
         {
             System = prompt.Text,
             Context = familyContext,
-            Messages = AsAlternatingTurns([.. history, new LlmMessage(LlmRole.User, parentMessage)]),
+            Messages = LlmMessage.AsAlternatingTurns([.. history, new LlmMessage(LlmRole.User, parentMessage)]),
         }, ct);
 
         if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
@@ -110,24 +110,5 @@ public sealed class ParentCoachAgent(
             sb.AppendLine(whenEmpty);
         foreach (var item in items)
             sb.AppendLine($"- {item}");
-    }
-
-    // The API needs turns that start with the user and alternate. Stored history can have
-    // two messages in a row from one side (a parent message whose reply failed, for example),
-    // so neighbours from the same side are joined.
-    private static List<LlmMessage> AsAlternatingTurns(IReadOnlyList<LlmMessage> history)
-    {
-        var turns = new List<LlmMessage>();
-        foreach (var message in history)
-        {
-            if (turns.Count == 0 && message.Role != LlmRole.User)
-                continue;
-
-            if (turns.Count > 0 && turns[^1].Role == message.Role)
-                turns[^1] = turns[^1] with { Text = turns[^1].Text + "\n\n" + message.Text };
-            else
-                turns.Add(message);
-        }
-        return turns;
     }
 }

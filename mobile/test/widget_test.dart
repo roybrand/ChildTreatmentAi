@@ -18,6 +18,7 @@ class FakeServer {
   bool consented = false;
   final children = <Map<String, dynamic>>[];
   final coachMessages = <String>[];
+  final profileItems = <Map<String, dynamic>>[];
   Map<String, dynamic> coachReply = {'kind': 'Reply', 'text': 'תשובת המאמן', 'contacts': <dynamic>[]};
 
   http.Client get client => MockClient(_handle);
@@ -52,6 +53,51 @@ class FakeServer {
     if (path.endsWith('/coach/messages') && request.method == 'POST') {
       coachMessages.add(body!['text'] as String);
       return _json(200, coachReply);
+    }
+    if (path.endsWith('/profile/interview')) {
+      return _json(200, {'opening': 'מה נועה אוהבת?', 'complete': false, 'messages': <dynamic>[]});
+    }
+    if (path.endsWith('/profile/interview/messages')) {
+      profileItems.add({'id': 'p1', 'section': 'StrengthsAndInterests', 'text': 'נועה אוהבת לצייר', 'status': 'Suggested'});
+      return _json(200, {
+        'kind': 'Reply',
+        'text': 'ומה מפחיד את נועה?',
+        'contacts': <dynamic>[],
+        'items': profileItems,
+        'complete': false,
+      });
+    }
+    if (path.contains('/profile-items/') && request.method == 'PATCH') {
+      final item = profileItems.firstWhere((i) => path.endsWith('/${i['id']}'));
+      item['status'] = body!['status'];
+      return _json(200, item);
+    }
+    if (path.endsWith('/profile-items') && request.method == 'GET') {
+      return _json(200, profileItems.where((i) => i['status'] != 'Rejected').toList());
+    }
+    if (path.endsWith('/summaries') && request.method == 'POST') {
+      return _json(200, {
+        'kind': 'Created',
+        'text': null,
+        'summary': {
+          'id': 's1',
+          'weekStart': '2026-09-27',
+          'weekEnd': '2026-10-03',
+          'content': {
+            'whatHappened': 'נועה נרדמה לבד פעמיים',
+            'patterns': [
+              {'text': 'הבכי התקצר', 'basis': 'observed'},
+              {'text': 'אולי העייפות משפיעה', 'basis': 'guess'},
+            ],
+            'whatWorked': ['המשפט התומך'],
+            'proposal': 'להמשיך באותו צעד',
+          },
+          'logEntries': 4,
+          'moodAverage': 2.8,
+          'previousMoodAverage': 2.5,
+          'createdAt': '2026-10-03T09:00:00Z',
+        },
+      });
     }
     if (request.method == 'GET') {
       return _json(200, <dynamic>[]);
@@ -173,6 +219,52 @@ void main() {
     await pumpApp(tester, signedIn: true);
 
     expect(find.text(Strings.consentTitle), findsOneWidget);
+  });
+
+  testWidgets('the interview shows what was written down, and accepting it puts it in the profile', (tester) async {
+    final server = await pumpApp(tester, ready: true);
+
+    await tester.tap(find.text(Strings.tabProfile));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.profileEmpty), findsOneWidget);
+
+    await tester.tap(find.text(Strings.profileInterview));
+    await tester.pumpAndSettle();
+    expect(find.text('מה נועה אוהבת?'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), 'היא אוהבת לצייר');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+    expect(find.text('ומה מפחיד את נועה?'), findsOneWidget);
+    expect(find.text(Strings.profileWaiting), findsOneWidget);
+    expect(find.text('נועה אוהבת לצייר'), findsOneWidget);
+
+    await tester.tap(find.text(Strings.profileAccept));
+    await tester.pumpAndSettle();
+    expect(server.profileItems.single['status'], 'Confirmed');
+    expect(find.text(Strings.profileWaiting), findsNothing);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text('נועה אוהבת לצייר'), findsOneWidget);
+    expect(find.text(Strings.profileSections['StrengthsAndInterests']!), findsOneWidget);
+  });
+
+  testWidgets('the weekly summary shows the numbers and marks a guess as a guess', (tester) async {
+    await pumpApp(tester, ready: true);
+
+    await tester.tap(find.text(Strings.tabSummary));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.summaryEmpty), findsOneWidget);
+
+    await tester.tap(find.text(Strings.summaryCreate));
+    await tester.pumpAndSettle();
+
+    expect(find.text('נועה נרדמה לבד פעמיים'), findsOneWidget);
+    expect(find.textContaining('2.8'), findsOneWidget);
+    expect(find.text(Strings.summaryObserved), findsOneWidget);
+    expect(find.text(Strings.summaryGuess), findsOneWidget);
+    expect(find.text('להמשיך באותו צעד'), findsOneWidget);
   });
 
   /// Sets the window size for one test, in logical pixels.

@@ -4,7 +4,29 @@ namespace ChildTreatment.Api.Llm;
 
 public enum LlmRole { User, Assistant }
 
-public sealed record LlmMessage(LlmRole Role, string Text);
+public sealed record LlmMessage(LlmRole Role, string Text)
+{
+    /// <summary>
+    /// The API needs turns that start with the user and alternate. Stored history can have
+    /// two messages in a row from one side (a parent message whose reply failed, for example),
+    /// so neighbours from the same side are joined.
+    /// </summary>
+    public static List<LlmMessage> AsAlternatingTurns(IReadOnlyList<LlmMessage> history)
+    {
+        var turns = new List<LlmMessage>();
+        foreach (var message in history)
+        {
+            if (turns.Count == 0 && message.Role != LlmRole.User)
+                continue;
+
+            if (turns.Count > 0 && turns[^1].Role == message.Role)
+                turns[^1] = turns[^1] with { Text = turns[^1].Text + "\n\n" + message.Text };
+            else
+                turns.Add(message);
+        }
+        return turns;
+    }
+}
 
 /// <summary>Which configured model a call uses. Review calls can run on a cheaper model than the main agent.</summary>
 public enum LlmTier { Main, Review }

@@ -4,6 +4,8 @@ using ChildTreatment.Api.Coaching;
 using ChildTreatment.Api.Data;
 using ChildTreatment.Api.Endpoints;
 using ChildTreatment.Api.Llm;
+using ChildTreatment.Api.Onboarding;
+using ChildTreatment.Api.Planning;
 using ChildTreatment.Api.Safety;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -53,6 +55,10 @@ builder.Services.AddSingleton<ILlmClient, AnthropicLlmClient>();
 builder.Services.AddScoped<SafetyReviewer>();
 builder.Services.AddScoped<ParentCoachAgent>();
 builder.Services.AddScoped<ParentCoachService>();
+builder.Services.AddScoped<ProfileAgent>();
+builder.Services.AddScoped<ProfileInterviewService>();
+builder.Services.AddScoped<WeeklySummaryAgent>();
+builder.Services.AddScoped<WeeklySummaryService>();
 
 var app = builder.Build();
 
@@ -81,6 +87,7 @@ app.MapGet("/api/crisis-contacts", () => new CrisisNotice(SafetyTexts.Crisis, Sa
 app.MapGroup("/auth").MapIdentityApi<AppUser>();
 app.MapFamilyEndpoints();
 app.MapChildEndpoints();
+app.MapAgentEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

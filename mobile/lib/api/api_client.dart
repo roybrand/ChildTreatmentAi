@@ -121,6 +121,42 @@ class ApiClient {
     return CoachMessage.fromReply(json as Map<String, dynamic>);
   }
 
+  // ---- Profile ----
+
+  Future<List<ProfileItem>> profileItems(String childId) async =>
+      _list(await _send('GET', '/api/children/$childId/profile-items'), ProfileItem.fromJson);
+
+  Future<ProfileItem> addProfileItem(String childId, String section, String text) async {
+    final json = await _send('POST', '/api/children/$childId/profile-items', body: {'section': section, 'text': text});
+    return ProfileItem.fromJson(json as Map<String, dynamic>);
+  }
+
+  /// Accepts or rejects an item the Profile Agent wrote down, or removes one the parent no longer wants.
+  Future<void> setProfileItem(String childId, String id, {required bool confirmed}) async {
+    await _send('PATCH', '/api/children/$childId/profile-items/$id',
+        body: {'status': confirmed ? 'Confirmed' : 'Rejected'});
+  }
+
+  Future<Interview> interview(String childId) async {
+    final json = await _send('GET', '/api/children/$childId/profile/interview');
+    return Interview.fromJson(json as Map<String, dynamic>);
+  }
+
+  Future<InterviewTurn> sendToInterview(String childId, String text) async {
+    final json = await _send('POST', '/api/children/$childId/profile/interview/messages', body: {'text': text});
+    return InterviewTurn.fromJson(json as Map<String, dynamic>);
+  }
+
+  // ---- Weekly summary ----
+
+  Future<List<WeeklySummary>> summaries(String childId) async =>
+      _list(await _send('GET', '/api/children/$childId/summaries'), WeeklySummary.fromJson);
+
+  Future<SummaryResult> createSummary(String childId) async {
+    final json = await _send('POST', '/api/children/$childId/summaries');
+    return SummaryResult.fromJson(json as Map<String, dynamic>);
+  }
+
   // ---- Plumbing ----
 
   static String _dateOnly(DateTime date) =>

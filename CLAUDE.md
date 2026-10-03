@@ -23,7 +23,7 @@ The `private/` folder holds personal context about the founder and their family.
 docker compose up -d                                  # local PostgreSQL
 dotnet test                                           # tests, no network needed
 dotnet run --project backend/src/ChildTreatment.Api   # the API
-dotnet run --project backend/tools/AgentEval          # score the Parent Coach; calls the model and costs money
+dotnet run --project backend/tools/AgentEval          # score an agent (-- --agent parent-coach|profile-agent|planner); calls the model and costs money
 cd mobile && flutter test && flutter run -d chrome    # the app, as the web app in the browser
 ```
 

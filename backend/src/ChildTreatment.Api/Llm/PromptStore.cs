@@ -10,7 +10,10 @@ public sealed class PromptOptions
     public Dictionary<string, string> Versions { get; set; } = new()
     {
         ["parent-coach"] = "v1",
+        ["profile-agent"] = "v1",
+        ["planner"] = "v1",
         ["safety-review"] = "v1",
+        ["summary-review"] = "v1",
     };
 }
 
