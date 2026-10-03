@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../strings.dart';
+import '../widgets/responsive.dart';
 
 class CrisisContact {
   const CrisisContact(this.name, this.phone, this.description);
@@ -23,33 +24,43 @@ const crisisContacts = [
 class CrisisScreen extends StatelessWidget {
   const CrisisScreen({super.key});
 
+  static const routeName = 'crisis';
+
+  /// The named route lets the automatic sign-out leave this screen open.
+  static Route<void> route() => MaterialPageRoute<void>(
+        settings: const RouteSettings(name: routeName),
+        builder: (_) => const CrisisScreen(),
+      );
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(title: const Text(Strings.crisisTitle)),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          Text(Strings.crisisIntro, style: theme.textTheme.bodyLarge),
-          const SizedBox(height: 16),
-          for (final contact in crisisContacts)
-            Card(
-              child: ListTile(
-                title: Text(contact.name),
-                subtitle: Text(contact.description),
-                trailing: FilledButton.icon(
-                  onPressed: () => launchUrl(Uri(scheme: 'tel', path: contact.phone)),
-                  icon: const Icon(Icons.phone),
-                  // Phone numbers read left to right even inside Hebrew text.
-                  label: Text('${Strings.call} ${contact.phone}', textDirection: TextDirection.rtl),
+      body: ContentWidth(
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            Text(Strings.crisisIntro, style: theme.textTheme.bodyLarge),
+            const SizedBox(height: 16),
+            for (final contact in crisisContacts)
+              Card(
+                child: ListTile(
+                  title: Text(contact.name),
+                  subtitle: Text(contact.description),
+                  trailing: FilledButton.icon(
+                    onPressed: () => launchUrl(Uri(scheme: 'tel', path: contact.phone)),
+                    icon: const Icon(Icons.phone),
+                    // Phone numbers read left to right even inside Hebrew text.
+                    label: Text('${Strings.call} ${contact.phone}', textDirection: TextDirection.rtl),
+                  ),
                 ),
               ),
-            ),
-          const SizedBox(height: 16),
-          Text(Strings.crisisAlsoContact, style: theme.textTheme.bodyMedium),
-        ],
+            const SizedBox(height: 16),
+            Text(Strings.crisisAlsoContact, style: theme.textTheme.bodyMedium),
+          ],
+        ),
       ),
     );
   }

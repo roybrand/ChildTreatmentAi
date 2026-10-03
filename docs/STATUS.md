@@ -4,7 +4,7 @@ Last updated: 2026-10-03
 
 ## Phase
 
-Phase 1, first slice built on both sides. The backend runs locally, the Parent Coach answers through it, and the mobile app has the phase 1 screens.
+Phase 1, first slice built on both sides. The backend runs locally, the Parent Coach answers through it, and the app has the phase 1 screens on a phone and in a browser.
 
 ## Done
 
@@ -48,10 +48,19 @@ Mobile app:
 - Phase 1 screens are built, in Hebrew and right-to-left: sign-in and registration, consent, add a child, coach conversation, daily log, accommodation map, crisis screen, sign-out and delete-everything
 - The crisis screen is reachable from every screen, including before sign-in, and works with no connection
 - Sign-in tokens are kept in the phone's secure storage and renewed automatically
-- Code analysis is clean and 6 app tests pass, covering the path from registration to the coach and the crisis reply
+- Code analysis is clean and 12 app tests pass, covering the path from registration to the coach, the crisis reply, both layouts, and the automatic sign-out
 - The Android debug build succeeds. It has not yet been installed on a phone
 - The API was checked with the same calls the app makes
 - Nobody has yet looked at the screens on a phone or in a browser. Layout and wording need the founder's eyes
+
+Web app:
+
+- The app also runs in a browser, for the parent now and for the young person when that side is built. See [DECISIONS.md](DECISIONS.md)
+- Layouts are responsive: tabs along the bottom on a phone, down the side on a tablet or a computer, with content in a centred column
+- On a computer, Enter sends a message to the coach and Shift+Enter starts a new line
+- In a browser, closing the tab signs the parent out, and so do 15 minutes without activity. The crisis screen stays open through that sign-out
+- The server takes its list of allowed web origins from settings. In development any local port is accepted
+- The web build succeeds. It is not hosted anywhere
 
 Spending:
 
@@ -61,7 +70,7 @@ Spending:
 
 ## Next
 
-1. Founder runs the app on their Android phone and reports what looks or reads wrong
+1. Founder runs the app in a browser and on their Android phone and reports what looks or reads wrong
 2. Profile Agent: the onboarding interview that builds the child's profile
 3. Planner: the weekly summary
 4. Profile screen in the app: the parent adds and edits what the coach knows about the child
@@ -69,7 +78,7 @@ Spending:
 
 ## Needs the founder
 
-- **Try the app on the Android phone.** Steps are in the README.
+- **Try the app in a browser and on the Android phone.** Steps are in the README. The browser is the quicker of the two.
 - **A spending limit in the Anthropic Console.** Only the account owner can set it, and it is the only hard cap.
 - **Repository visibility.** The GitHub repository is public. Switch it to private if the product plans and prompts should not be open.
 - Review of the Parent Coach's replies in [eval/parent-coach-v1.md](eval/parent-coach-v1.md) by someone who reads Hebrew as a parent would.
@@ -85,6 +94,9 @@ Spending:
 - The app has no screen yet for profile items, exporting data, or switching between children
 - The consent text in the app is a draft, not reviewed by a lawyer
 - The emergency contacts are written both in the app and on the server and must be kept in step by hand
+- Signing out, by hand or automatically, removes the tokens from the device but does not cancel them on the server
+- On a phone's browser, typing on the on-screen keyboard does not count as activity for the automatic sign-out; taps and scrolling do
+- The web app has no hosting, and no child or teen sign-in exists yet to separate from the parent's on a shared computer
 
 ## Open questions
 
@@ -92,7 +104,7 @@ Not blocking yet:
 
 - Tutor: which mathematics topics, grades, and interest worlds come first, and how closely to follow the school curriculum
 - Skills Guide: which published programme structure to base the modules on
-- How iOS builds are made: a Mac, or a cloud build service. The founder tests on Android, so this waits
+- How iOS builds are made: a Mac, or a cloud build service. The founder tests on Android and iPhone users can use the browser, so this waits
 - Product name
 - Hosting provider and region
 - Price and whether there is a free tier

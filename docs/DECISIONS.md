@@ -2,6 +2,26 @@
 
 Newest first. Each entry records what was decided and why. To reverse a decision, add a new entry; do not edit the old one.
 
+## 2026-10-03: The app also runs in a browser, for parent and young person
+
+The same Flutter code is built as a responsive web app as well as a phone app. Both the parent's side and the young person's side are supported in the browser. This reverses "a web version is out of scope" and revises the Flutter entry below, which chose a phone app over a web app. The phone app stays, and stays the place for reminders and alerts.
+
+**Why:** founder's decision.
+
+- A child does lessons and homework on a tablet or a computer. Many younger children have no phone, and activities for under-12s are done by the parent and child together at one screen.
+- There is no way to build the iPhone app yet. A browser is the only way a parent with an iPhone can use it.
+- A link is easier than an install for the first parents who try it.
+- Coaching is long-form writing, which is easier at a keyboard.
+- It is one codebase, so the cost is responsive layouts, not a second app.
+
+**Conditions:**
+
+- A browser may be on a computer the whole family uses. In a browser the sign-in lasts only as long as the tab, and the parent is signed out after 15 minutes without activity. The crisis screen is never closed by that sign-out.
+- When the young person's side is built, it gets its own sign-in and cannot reach the parent's log, plans, or coaching from the same browser. See [PRIVACY.md](PRIVACY.md).
+- Lessons work by touch and by mouse. See [TUTOR_LESSONS.md](TUTOR_LESSONS.md).
+
+**Cost of this choice:** browser storage is weaker than a phone's secure storage, browser notifications are unreliable, and the web app needs hosting and a list of allowed origins on the server.
+
 ## 2026-10-03: Cheaper models while testing, the best model in production
 
 Production settings use the most capable model for the coach and for the safety review. Development settings use Claude Sonnet 5.5 at low effort for the coach and Claude Haiku 4.5 for the review. The evaluation tool defaults to the testing models and prints the estimated cost of each run.

@@ -11,19 +11,19 @@ An app that helps families of children and teens with anxiety. Start with [CLAUD
 | `backend/src/ChildTreatment.Api/` | The ASP.NET Core API |
 | `backend/tests/` | Tests. They use a fake model and need no network |
 | `backend/tools/AgentEval/` | Runs an agent against its scenario set and scores the replies |
-| `mobile/` | The Flutter app for iOS and Android |
+| `mobile/` | The Flutter app for iOS, Android, and the browser |
 
 ## Requirements
 
 - .NET 10 SDK
 - Docker, for the local PostgreSQL database
-- `ANTHROPIC_API_KEY` set in the environment
+- A model API key, either as `Llm:ApiKey` in `appsettings.Development.json` (git ignores that file) or as `ANTHROPIC_API_KEY` in the environment. Never put it in `appsettings.json`
 
 ## Run it locally
 
 ```bash
 cp backend/src/ChildTreatment.Api/appsettings.Development.example.json backend/src/ChildTreatment.Api/appsettings.Development.json
-# then put a new 32-byte base64 key in Encryption:Key
+# then put a new 32-byte base64 key in Encryption:Key, and the model API key in Llm:ApiKey
 docker compose up -d                 # PostgreSQL on port 5433
 dotnet tool restore                  # the EF Core command-line tool
 dotnet run --project backend/src/ChildTreatment.Api
@@ -39,8 +39,10 @@ Requires Flutter. For an Android phone it also requires a JDK and the Android SD
 
 ```bash
 cd mobile
-flutter run -d chrome            # preview in the browser
+flutter run -d chrome            # the web app
 ```
+
+Resize the browser window to see the phone layout and the wide layout. In the browser, closing the tab signs you out, and so do 15 minutes without activity.
 
 On an Android phone, with the API running on this computer:
 

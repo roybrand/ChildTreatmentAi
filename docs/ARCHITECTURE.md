@@ -1,6 +1,6 @@
 # Architecture
 
-Status: the backend for the first slice of phase 1 is built. The mobile app has the phase 1 screens. Items marked **(open)** are not decided.
+Status: the backend for the first slice of phase 1 is built. The app has the phase 1 screens, on a phone and in a browser. Items marked **(open)** are not decided.
 
 ## Stack
 
@@ -8,7 +8,7 @@ Status: the backend for the first slice of phase 1 is built. The mobile app has 
 | --- | --- |
 | Backend | ASP.NET Core Web API on .NET 10 |
 | Database | PostgreSQL with EF Core |
-| Mobile app | Flutter (Dart), one codebase for iOS and Android |
+| App | Flutter (Dart), one codebase for iOS, Android, and the browser |
 | LLM | Claude API, called only from the backend |
 | Notifications | Firebase Cloud Messaging, which delivers to both iOS and Android |
 | Background work | Hosted worker inside the API process to start with |
@@ -18,7 +18,7 @@ Status: the backend for the first slice of phase 1 is built. The mobile app has 
 ## Components
 
 ```
-Flutter app (iOS and Android, Hebrew RTL)
+Flutter app (iOS, Android, and browser; Hebrew RTL)
    |  HTTPS, JSON
    v
 ASP.NET Core API
@@ -54,11 +54,15 @@ As built: production settings use `claude-opus-5-5` for the coach and the review
 
 The app never calls the LLM directly, and no API key is ever shipped inside the app.
 
-## Mobile app
+## App
 
-- One Flutter codebase builds both the iOS and the Android app.
+- One Flutter codebase builds the iOS app, the Android app, and the web app.
+- Layouts are responsive. Below 840 pixels wide the tabs sit along the bottom; from 840 up they sit down the side, and content stays in a centred column. New screens are built this way from the start.
+- In a browser the sign-in tokens are kept in the tab's session storage, and the parent is signed out after 15 minutes without activity. See [PRIVACY.md](PRIVACY.md).
+- The server accepts browser requests only from the origins listed in the `Cors:AllowedOrigins` setting. In development any local port is accepted.
 - The app holds no business rules and no prompts. It shows screens, collects input, and calls the API. Safety checks run on the server, where they cannot be bypassed or go stale in an old app version.
 - Calming tools (breathing, grounding) work offline. Everything else needs a connection.
+- Notifications reach the phone app only. The web app has none.
 - Sensitive data cached on the phone is kept in the platform's secure storage, and the app can be locked with the phone's biometrics.
 - Building the iOS app needs a Mac or a cloud build service, since development is on Windows. Publishing needs an Apple developer account and a Google Play developer account.
 - App store review is stricter for apps that involve children and health. Allow time for it and expect questions about the claims the app makes.
@@ -106,4 +110,5 @@ All user-facing strings live in resource files. Hebrew is the first language; th
 - Data model for lessons, skills modules, the plan, and the event log
 - Payments
 - iOS build pipeline
+- Hosting for the web app
 - Account recovery for a young person's login

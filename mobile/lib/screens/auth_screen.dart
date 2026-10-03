@@ -67,6 +67,10 @@ class _AuthScreenState extends State<AuthScreen> {
                 children: [
                   Text(Strings.appTitle, style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
                   const SizedBox(height: 24),
+                  if (widget.state.signedOutForIdle) ...[
+                    Text(Strings.idleSignedOut, style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                  ],
                   TextFormField(
                     controller: _email,
                     decoration: const InputDecoration(labelText: Strings.email, border: OutlineInputBorder()),

@@ -1,12 +1,14 @@
 {
-    "name": "child_treatment",
-    "short_name": "child_treatment",
+    "name": "ליווי הורים",
+    "short_name": "ליווי הורים",
+    "lang": "he",
+    "dir": "rtl",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
+    "background_color": "#FFFFFF",
+    "theme_color": "#3F7D7B",
     "description": "Support for families of children and teens with anxiety",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

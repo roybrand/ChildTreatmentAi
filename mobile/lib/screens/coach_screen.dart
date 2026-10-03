@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../api/api_client.dart';
 import '../api/models.dart';
@@ -20,6 +22,7 @@ class CoachScreen extends StatefulWidget {
 class _CoachScreenState extends State<CoachScreen> {
   final _input = TextEditingController();
   final _scroll = ScrollController();
+  late final _inputFocus = FocusNode(onKeyEvent: _onKey);
   List<CoachMessage> _messages = [];
   bool _loading = true;
   bool _sending = false;
@@ -34,7 +37,21 @@ class _CoachScreenState extends State<CoachScreen> {
   void dispose() {
     _input.dispose();
     _scroll.dispose();
+    _inputFocus.dispose();
     super.dispose();
+  }
+
+  /// On a computer, Enter sends and Shift+Enter starts a new line. On a phone, Enter is a new line.
+  KeyEventResult _onKey(FocusNode node, KeyEvent event) {
+    const computers = {TargetPlatform.windows, TargetPlatform.macOS, TargetPlatform.linux};
+    if (event is! KeyDownEvent ||
+        event.logicalKey != LogicalKeyboardKey.enter ||
+        HardwareKeyboard.instance.isShiftPressed ||
+        !computers.contains(defaultTargetPlatform)) {
+      return KeyEventResult.ignored;
+    }
+    _send();
+    return KeyEventResult.handled;
   }
 
   Future<void> _load() async {
@@ -136,6 +153,7 @@ class _CoachScreenState extends State<CoachScreen> {
                 Expanded(
                   child: TextField(
                     controller: _input,
+                    focusNode: _inputFocus,
                     decoration: const InputDecoration(hintText: Strings.coachHint, border: OutlineInputBorder()),
                     minLines: 1,
                     maxLines: 5,
@@ -193,28 +211,29 @@ class _Bubble extends StatelessWidget {
       (false, _) => (scheme.surfaceContainerLow, scheme.onSurfaceVariant),
     };
 
-    return Align(
-      alignment: message.fromParent ? AlignmentDirectional.centerStart : AlignmentDirectional.centerEnd,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.all(12),
-        constraints: BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * 0.85),
-        decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(12)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SelectableText(message.text, style: TextStyle(color: foreground, height: 1.4)),
-            if (isCrisis) ...[
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute<void>(builder: (_) => const CrisisScreen()),
+    // Sized against the conversation column, which is narrower than the window on a wide screen.
+    return LayoutBuilder(
+      builder: (context, constraints) => Align(
+        alignment: message.fromParent ? AlignmentDirectional.centerStart : AlignmentDirectional.centerEnd,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          padding: const EdgeInsets.all(12),
+          constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.85),
+          decoration: BoxDecoration(color: background, borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SelectableText(message.text, style: TextStyle(color: foreground, height: 1.4)),
+              if (isCrisis) ...[
+                const SizedBox(height: 12),
+                FilledButton.icon(
+                  onPressed: () => Navigator.of(context).push(CrisisScreen.route()),
+                  icon: const Icon(Icons.support),
+                  label: const Text(Strings.crisisOpenScreen),
                 ),
-                icon: const Icon(Icons.support),
-                label: const Text(Strings.crisisOpenScreen),
-              ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

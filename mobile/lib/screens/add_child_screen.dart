@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../strings.dart';
 import '../widgets/crisis_button.dart';
 import '../widgets/errors.dart';
+import '../widgets/responsive.dart';
 
 class AddChildScreen extends StatefulWidget {
   const AddChildScreen({super.key, required this.state});
@@ -57,33 +58,36 @@ class _AddChildScreenState extends State<AddChildScreen> {
       appBar: AppBar(title: const Text(Strings.addChildTitle), actions: const [CrisisButton()]),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _form,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(Strings.addChildIntro, style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 24),
-              TextFormField(
-                controller: _nickname,
-                decoration: const InputDecoration(labelText: Strings.nickname, border: OutlineInputBorder()),
-                maxLength: 50,
-                validator: (value) => value == null || value.trim().isEmpty ? Strings.requiredField : null,
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<int>(
-                initialValue: _birthYear,
-                decoration: const InputDecoration(labelText: Strings.birthYear, border: OutlineInputBorder()),
-                items: [for (final year in years) DropdownMenuItem(value: year, child: Text('$year'))],
-                onChanged: (value) => setState(() => _birthYear = value),
-                validator: (value) => value == null ? Strings.birthYearInvalid : null,
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _busy ? null : _submit,
-                child: const Text(Strings.continueLabel),
-              ),
-            ],
+        child: ContentWidth(
+          maxWidth: ContentWidth.form,
+          child: Form(
+            key: _form,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(Strings.addChildIntro, style: theme.textTheme.bodyMedium),
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _nickname,
+                  decoration: const InputDecoration(labelText: Strings.nickname, border: OutlineInputBorder()),
+                  maxLength: 50,
+                  validator: (value) => value == null || value.trim().isEmpty ? Strings.requiredField : null,
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  initialValue: _birthYear,
+                  decoration: const InputDecoration(labelText: Strings.birthYear, border: OutlineInputBorder()),
+                  items: [for (final year in years) DropdownMenuItem(value: year, child: Text('$year'))],
+                  onChanged: (value) => setState(() => _birthYear = value),
+                  validator: (value) => value == null ? Strings.birthYearInvalid : null,
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _busy ? null : _submit,
+                  child: const Text(Strings.continueLabel),
+                ),
+              ],
+            ),
           ),
         ),
       ),

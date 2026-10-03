@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/models.dart';
 import '../strings.dart';
 import '../widgets/errors.dart';
+import '../widgets/responsive.dart';
 import 'crisis_screen.dart';
 
 /// The parent's daily log.
@@ -55,7 +56,7 @@ class _LogScreenState extends State<LogScreen> {
 
     // What the parent wrote matched the crisis rules: show them who to call.
     if (result.crisis) {
-      await Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => const CrisisScreen()));
+      await Navigator.of(context).push(CrisisScreen.route());
     }
   }
 
@@ -207,65 +208,68 @@ class _LogEntryFormState extends State<_LogEntryForm> {
       appBar: AppBar(title: const Text(Strings.logAdd)),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _form,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _whatHappened,
-                decoration: const InputDecoration(labelText: Strings.logWhatHappened, border: OutlineInputBorder()),
-                minLines: 3,
-                maxLines: 6,
-                maxLength: 4000,
-                validator: (value) => value == null || value.trim().isEmpty ? Strings.requiredField : null,
-              ),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _childReaction,
-                decoration: const InputDecoration(
-                  labelText: Strings.logChildReaction,
-                  helperText: Strings.logOptional,
-                  border: OutlineInputBorder(),
+        child: ContentWidth(
+          maxWidth: ContentWidth.form,
+          child: Form(
+            key: _form,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextFormField(
+                  controller: _whatHappened,
+                  decoration: const InputDecoration(labelText: Strings.logWhatHappened, border: OutlineInputBorder()),
+                  minLines: 3,
+                  maxLines: 6,
+                  maxLength: 4000,
+                  validator: (value) => value == null || value.trim().isEmpty ? Strings.requiredField : null,
                 ),
-                minLines: 2,
-                maxLines: 5,
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _parentResponse,
-                decoration: const InputDecoration(
-                  labelText: Strings.logParentResponse,
-                  helperText: Strings.logOptional,
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 8),
+                TextFormField(
+                  controller: _childReaction,
+                  decoration: const InputDecoration(
+                    labelText: Strings.logChildReaction,
+                    helperText: Strings.logOptional,
+                    border: OutlineInputBorder(),
+                  ),
+                  minLines: 2,
+                  maxLines: 5,
                 ),
-                minLines: 2,
-                maxLines: 5,
-              ),
-              const SizedBox(height: 24),
-              Text(Strings.logMood, style: theme.textTheme.titleSmall),
-              const SizedBox(height: 8),
-              SegmentedButton<int>(
-                segments: [for (var i = 1; i <= 5; i++) ButtonSegment(value: i, label: Text('$i'))],
-                selected: {?_mood},
-                emptySelectionAllowed: true,
-                showSelectedIcon: false,
-                onSelectionChanged: (selection) =>
-                    setState(() => _mood = selection.isEmpty ? null : selection.first),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Row(
-                  children: [
-                    Text(Strings.logMoodLow, style: theme.textTheme.bodySmall),
-                    const Spacer(),
-                    Text(Strings.logMoodHigh, style: theme.textTheme.bodySmall),
-                  ],
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _parentResponse,
+                  decoration: const InputDecoration(
+                    labelText: Strings.logParentResponse,
+                    helperText: Strings.logOptional,
+                    border: OutlineInputBorder(),
+                  ),
+                  minLines: 2,
+                  maxLines: 5,
                 ),
-              ),
-              const SizedBox(height: 24),
-              FilledButton(onPressed: _busy ? null : _save, child: const Text(Strings.save)),
-            ],
+                const SizedBox(height: 24),
+                Text(Strings.logMood, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                SegmentedButton<int>(
+                  segments: [for (var i = 1; i <= 5; i++) ButtonSegment(value: i, label: Text('$i'))],
+                  selected: {?_mood},
+                  emptySelectionAllowed: true,
+                  showSelectedIcon: false,
+                  onSelectionChanged: (selection) =>
+                      setState(() => _mood = selection.isEmpty ? null : selection.first),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Row(
+                    children: [
+                      Text(Strings.logMoodLow, style: theme.textTheme.bodySmall),
+                      const Spacer(),
+                      Text(Strings.logMoodHigh, style: theme.textTheme.bodySmall),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                FilledButton(onPressed: _busy ? null : _save, child: const Text(Strings.save)),
+              ],
+            ),
           ),
         ),
       ),

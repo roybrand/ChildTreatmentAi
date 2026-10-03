@@ -12,9 +12,7 @@ class CrisisButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsetsDirectional.only(end: 8),
       child: TextButton.icon(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute<void>(builder: (_) => const CrisisScreen()),
-        ),
+        onPressed: () => Navigator.of(context).push(CrisisScreen.route()),
         icon: const Icon(Icons.support),
         label: const Text(Strings.crisisButton),
       ),

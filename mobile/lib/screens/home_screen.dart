@@ -4,6 +4,7 @@ import '../app_state.dart';
 import '../strings.dart';
 import '../widgets/crisis_button.dart';
 import '../widgets/errors.dart';
+import '../widgets/responsive.dart';
 import 'accommodations_screen.dart';
 import 'coach_screen.dart';
 import 'log_screen.dart';
@@ -21,7 +22,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  // Keeps the tabs, and anything half-typed in them, when a resized window switches layout.
+  final _tabsKey = GlobalKey();
   int _tab = 0;
+
+  void _selectTab(int index) => setState(() => _tab = index);
 
   Future<void> _onMenu(_MenuAction action) async {
     switch (action) {
@@ -61,6 +66,21 @@ class _HomeScreenState extends State<HomeScreen> {
     final api = widget.state.api;
     final child = widget.state.child!;
 
+    final wide = isWide(context);
+
+    // Each tab keeps its state while the parent moves between them.
+    final tabs = ContentWidth(
+      child: IndexedStack(
+        key: _tabsKey,
+        index: _tab,
+        children: [
+          CoachScreen(api: api, child: child),
+          LogScreen(api: api, child: child),
+          AccommodationsScreen(api: api, child: child),
+        ],
+      ),
+    );
+
     return Scaffold(
       appBar: AppBar(
         title: Text(child.nickname),
@@ -75,24 +95,36 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      // Each tab keeps its state while the parent moves between them.
-      body: IndexedStack(
-        index: _tab,
-        children: [
-          CoachScreen(api: api, child: child),
-          LogScreen(api: api, child: child),
-          AccommodationsScreen(api: api, child: child),
-        ],
-      ),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _tab,
-        onDestinationSelected: (index) => setState(() => _tab = index),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: Strings.tabCoach),
-          NavigationDestination(icon: Icon(Icons.edit_note), label: Strings.tabLog),
-          NavigationDestination(icon: Icon(Icons.map_outlined), label: Strings.tabMap),
-        ],
-      ),
+      // A phone has the tabs along the bottom. A tablet or a computer has them down the side.
+      body: wide
+          ? Row(
+              children: [
+                NavigationRail(
+                  selectedIndex: _tab,
+                  onDestinationSelected: _selectTab,
+                  labelType: NavigationRailLabelType.all,
+                  destinations: const [
+                    NavigationRailDestination(icon: Icon(Icons.chat_bubble_outline), label: Text(Strings.tabCoach)),
+                    NavigationRailDestination(icon: Icon(Icons.edit_note), label: Text(Strings.tabLog)),
+                    NavigationRailDestination(icon: Icon(Icons.map_outlined), label: Text(Strings.tabMap)),
+                  ],
+                ),
+                const VerticalDivider(width: 1),
+                Expanded(child: tabs),
+              ],
+            )
+          : tabs,
+      bottomNavigationBar: wide
+          ? null
+          : NavigationBar(
+              selectedIndex: _tab,
+              onDestinationSelected: _selectTab,
+              destinations: const [
+                NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: Strings.tabCoach),
+                NavigationDestination(icon: Icon(Icons.edit_note), label: Strings.tabLog),
+                NavigationDestination(icon: Icon(Icons.map_outlined), label: Strings.tabMap),
+              ],
+            ),
     );
   }
 }

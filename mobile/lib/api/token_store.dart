@@ -15,11 +15,13 @@ abstract class TokenStore {
 }
 
 /// Keeps tokens in the platform's secure storage (Android Keystore, iOS Keychain).
+/// In a browser they live only as long as the tab: closing it signs the parent out, so the next
+/// person at a shared computer does not find the account open (docs/PRIVACY.md).
 class SecureTokenStore implements TokenStore {
   static const _access = 'access_token';
   static const _refresh = 'refresh_token';
 
-  final _storage = const FlutterSecureStorage();
+  final _storage = const FlutterSecureStorage(webOptions: WebOptions(useSessionStorage: true));
 
   @override
   Future<Tokens?> read() async {

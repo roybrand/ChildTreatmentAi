@@ -19,6 +19,10 @@ class AppState extends ChangeNotifier {
   List<Child> children = [];
   Child? child;
 
+  /// True when the app signed the parent out after a stretch without activity, so the
+  /// sign-in screen can say why.
+  bool signedOutForIdle = false;
+
   /// Works out the stage from what the server says. Called at start and after each step.
   Future<void> refresh() async {
     if (!await api.hasSession()) {
@@ -46,6 +50,7 @@ class AppState extends ChangeNotifier {
       await api.register(email, password);
     }
     await api.login(email, password);
+    signedOutForIdle = false;
     await refresh();
   }
 
@@ -59,8 +64,9 @@ class AppState extends ChangeNotifier {
     await refresh();
   }
 
-  Future<void> signOut() async {
+  Future<void> signOut({bool idle = false}) async {
     await api.logout();
+    signedOutForIdle = idle;
     _clear();
   }
 

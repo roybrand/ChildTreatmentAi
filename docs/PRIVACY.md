@@ -25,6 +25,17 @@ Status: draft. A lawyer who knows Israeli privacy law must review this before th
 
 For teens, private notes stay private so the teen can be honest. The one exception is safety: crisis content triggers the crisis screen and a parent alert. The teen is told about this exception up front, during onboarding, so it never comes as a betrayal.
 
+## Shared computers and browsers
+
+The app also runs in a browser, and a family computer or tablet is often shared by the parent and the child. The table above must hold there too.
+
+- In a browser the sign-in lasts only as long as the tab. Closing the tab signs the parent out. There is no "stay signed in".
+- In a browser the parent is signed out after 15 minutes without activity. Anything open on top, such as a half-written log entry, is closed. The crisis screen stays open.
+- The young person's side, when built, has its own sign-in. From it there is no way to reach the parent's log, plans, or coaching sessions, and the server refuses those requests for a young person's login.
+- A teen's private notes get the same protection in the other direction.
+
+Not yet covered: the browser's own history and password manager, and a parent who walks away within the 15 minutes.
+
 ## Data sent to the LLM
 
 - Names and other identifying details are replaced with placeholders before a call and restored afterwards.

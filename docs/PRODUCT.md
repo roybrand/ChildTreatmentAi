@@ -91,7 +91,12 @@ Two agents speak with the young person, both in later phases and both inside a f
 - Care-team hub (inviting teachers, counsellors, therapists)
 - School or municipality integrations
 - Parent-to-parent community or chat
-- A web version
+
+## Where it runs
+
+- A phone app for Android and iOS, and the same app in a browser on a phone, a tablet, or a computer.
+- Both the parent's side and the young person's side work in the browser. Lessons in particular are expected on a tablet or a computer.
+- Reminders and safety alerts come through the phone app.
 
 ## Build order
 

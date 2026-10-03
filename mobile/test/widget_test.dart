@@ -6,7 +6,9 @@ import 'package:child_treatment/app_state.dart';
 import 'package:child_treatment/main.dart';
 import 'package:child_treatment/screens/crisis_screen.dart';
 import 'package:child_treatment/strings.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
@@ -64,7 +66,12 @@ class FakeServer {
       );
 }
 
-Future<FakeServer> pumpApp(WidgetTester tester, {bool signedIn = false, bool ready = false}) async {
+Future<FakeServer> pumpApp(
+  WidgetTester tester, {
+  bool signedIn = false,
+  bool ready = false,
+  Duration? idleTimeout,
+}) async {
   final server = FakeServer();
   final tokens = MemoryTokenStore();
   if (signedIn || ready) {
@@ -76,7 +83,7 @@ Future<FakeServer> pumpApp(WidgetTester tester, {bool signedIn = false, bool rea
   }
 
   final api = ApiClient(baseUrl: 'http://test', tokens: tokens, httpClient: server.client);
-  await tester.pumpWidget(ChildTreatmentApp(state: AppState(api)));
+  await tester.pumpWidget(ChildTreatmentApp(state: AppState(api), idleTimeout: idleTimeout));
   await tester.pumpAndSettle();
   return server;
 }
@@ -166,5 +173,93 @@ void main() {
     await pumpApp(tester, signedIn: true);
 
     expect(find.text(Strings.consentTitle), findsOneWidget);
+  });
+
+  /// Sets the window size for one test, in logical pixels.
+  void setWindow(WidgetTester tester, Size size) {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = size;
+    addTearDown(tester.view.reset);
+  }
+
+  testWidgets('a phone has the tabs along the bottom', (tester) async {
+    setWindow(tester, const Size(390, 800));
+    await pumpApp(tester, ready: true);
+
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(NavigationRail), findsNothing);
+  });
+
+  testWidgets('a computer has the tabs down the side and a readable column', (tester) async {
+    setWindow(tester, const Size(1400, 900));
+    await pumpApp(tester, ready: true);
+
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.byType(NavigationBar), findsNothing);
+    expect(tester.getSize(find.byType(TextField)).width, lessThan(760));
+
+    await tester.tap(find.text(Strings.tabLog));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.logEmpty), findsOneWidget);
+  });
+
+  testWidgets('on a computer Enter sends the message and Shift+Enter does not', (tester) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.windows;
+    final server = await pumpApp(tester, ready: true);
+
+    await tester.enterText(find.byType(TextField), 'שורה ראשונה');
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.shiftLeft);
+    await tester.pumpAndSettle();
+    expect(server.coachMessages, isEmpty);
+
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pumpAndSettle();
+    expect(server.coachMessages, ['שורה ראשונה']);
+
+    debugDefaultTargetPlatformOverride = null;
+  });
+
+  testWidgets('resizing the window keeps a half-typed message', (tester) async {
+    setWindow(tester, const Size(390, 800));
+    await pumpApp(tester, ready: true);
+    await tester.enterText(find.byType(TextField), 'טיוטה');
+
+    tester.view.physicalSize = const Size(1400, 900);
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NavigationRail), findsOneWidget);
+    expect(find.text('טיוטה'), findsOneWidget);
+  });
+
+  testWidgets('after a stretch without activity the parent is signed out', (tester) async {
+    await pumpApp(tester, ready: true, idleTimeout: const Duration(minutes: 15));
+
+    await tester.pump(const Duration(minutes: 10));
+    await tester.tap(find.text(Strings.tabLog));
+    await tester.pump(const Duration(minutes: 10));
+    await tester.pumpAndSettle();
+    // The tap restarted the clock, so the parent is still in.
+    expect(find.text(Strings.logEmpty), findsOneWidget);
+
+    await tester.pump(const Duration(minutes: 16));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.idleSignedOut), findsOneWidget);
+    expect(find.text(Strings.tabLog), findsNothing);
+  });
+
+  testWidgets('the automatic sign-out leaves the crisis screen open', (tester) async {
+    await pumpApp(tester, ready: true, idleTimeout: const Duration(minutes: 15));
+
+    await tester.tap(find.text(Strings.crisisButton));
+    await tester.pumpAndSettle();
+    await tester.pump(const Duration(minutes: 16));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(CrisisScreen), findsOneWidget);
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.idleSignedOut), findsOneWidget);
   });
 }

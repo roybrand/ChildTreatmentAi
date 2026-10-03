@@ -104,6 +104,14 @@ The Tutor says plainly: "This is what it looks like on a worksheet. It is the sa
 - **Reading difficulty:** all text is read aloud, and each screen has one sentence.
 - **Fear of being wrong:** no answer is ever marked wrong. The swatch shows the result and the child adjusts.
 
+### Screens and input
+
+Lessons run on a phone, a tablet, and a computer, in the app or in a browser. See the web decision in [DECISIONS.md](DECISIONS.md).
+
+- Every action works by touch and by mouse. A tap and a click do the same thing. Nothing depends on hovering, a right click, or a keyboard shortcut.
+- The game area scales to the screen and keeps its proportions. A larger screen shows a larger bottle, not more text.
+- The rule of one sentence per screen holds on every screen size.
+
 ## Next lessons in fractions
 
 2. Which bottle is pinker: comparing fractions

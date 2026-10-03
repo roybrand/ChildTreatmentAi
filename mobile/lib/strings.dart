@@ -25,7 +25,8 @@ class Strings {
   static const switchToLogin = 'יש לך חשבון? כניסה';
   static const errorLogin = 'האימייל או הסיסמה שגויים.';
   static const errorRegister = 'לא הצלחנו ליצור חשבון. ייתכן שהאימייל כבר רשום.';
-  static const notTherapy = 'האפליקציה אינה טיפול ואינה מחליפה איש מקצוע.';
+  static const idleSignedOut = 'יצאתם מהחשבון אוטומטית אחרי זמן ללא פעילות, כדי לשמור על הפרטיות שלכם.';
+  static const notTherapy ='האפליקציה אינה טיפול ואינה מחליפה איש מקצוע.';
 
   // Consent
   static const consentTitle = 'לפני שמתחילים';
