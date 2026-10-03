@@ -1,6 +1,6 @@
 # Architecture
 
-Status: the backend for the first slice of phase 1 is built. The mobile app has a shell and the crisis screen. Items marked **(open)** are not decided.
+Status: the backend for the first slice of phase 1 is built. The mobile app has the phase 1 screens. Items marked **(open)** are not decided.
 
 ## Stack
 
@@ -62,6 +62,8 @@ The app never calls the LLM directly, and no API key is ever shipped inside the 
 - Sensitive data cached on the phone is kept in the platform's secure storage, and the app can be locked with the phone's biometrics.
 - Building the iOS app needs a Mac or a cloud build service, since development is on Windows. Publishing needs an Apple developer account and a Google Play developer account.
 - App store review is stricter for apps that involve children and health. Allow time for it and expect questions about the claims the app makes.
+
+As built: the app is in `mobile/`. One class, `ApiClient`, makes every server call. `AppState` decides which stage the parent is at: signed out, needs consent, needs a child, or ready. All user-facing text is in `lib/strings.dart`. The crisis contacts are built into the app so that screen works offline.
 
 ## Safety monitor
 

@@ -21,7 +21,12 @@ builder.Services
     .AddIdentityApiEndpoints<AppUser>(options =>
     {
         options.User.RequireUniqueEmail = true;
+        // Length over composition rules: easier to type on a phone and no weaker.
         options.Password.RequiredLength = 10;
+        options.Password.RequireDigit = false;
+        options.Password.RequireLowercase = false;
+        options.Password.RequireUppercase = false;
+        options.Password.RequireNonAlphanumeric = false;
     })
     .AddRoles<IdentityRole<Guid>>()
     .AddEntityFrameworkStores<AppDbContext>();
@@ -29,6 +34,9 @@ builder.Services
 builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
+// The app previewed in a browser runs on another port. Development only.
+builder.Services.AddCors(options => options.AddPolicy("DevPreview", policy =>
+    policy.SetIsOriginAllowed(origin => new Uri(origin).IsLoopback).AllowAnyHeader().AllowAnyMethod()));
 
 builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection("Llm"));
 var promptOptions = builder.Configuration.GetSection("Prompts").Get<PromptOptions>() ?? new PromptOptions();
@@ -44,6 +52,8 @@ var app = builder.Build();
 
 app.UseExceptionHandler();
 app.UseStatusCodePages();
+if (app.Environment.IsDevelopment())
+    app.UseCors("DevPreview");
 app.UseAuthentication();
 app.UseAuthorization();
 

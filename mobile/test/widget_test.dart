@@ -1,19 +1,96 @@
+import 'dart:convert';
+
+import 'package:child_treatment/api/api_client.dart';
+import 'package:child_treatment/api/token_store.dart';
+import 'package:child_treatment/app_state.dart';
 import 'package:child_treatment/main.dart';
 import 'package:child_treatment/screens/crisis_screen.dart';
 import 'package:child_treatment/strings.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+
+/// A small stand-in for the server, enough to walk through the app.
+class FakeServer {
+  bool consented = false;
+  final children = <Map<String, dynamic>>[];
+  final coachMessages = <String>[];
+  Map<String, dynamic> coachReply = {'kind': 'Reply', 'text': 'תשובת המאמן', 'contacts': <dynamic>[]};
+
+  http.Client get client => MockClient(_handle);
+
+  Future<http.Response> _handle(http.Request request) async {
+    final path = request.url.path;
+    final body = request.body.isEmpty ? null : jsonDecode(request.body) as Map<String, dynamic>;
+
+    if (path == '/auth/register') {
+      return _json(200, null);
+    }
+    if (path == '/auth/login') {
+      return _json(200, {'accessToken': 'a', 'refreshToken': 'r'});
+    }
+    if (request.headers['Authorization'] != 'Bearer a') {
+      return _json(401, null);
+    }
+    if (path == '/api/family/consent') {
+      consented = true;
+      return _json(200, {});
+    }
+    if (!consented) {
+      return _json(409, {'title': 'consent_required'});
+    }
+    if (path == '/api/children' && request.method == 'GET') {
+      return _json(200, children);
+    }
+    if (path == '/api/children' && request.method == 'POST') {
+      children.add({'id': 'c1', 'nickname': body!['nickname'], 'birthYear': body['birthYear'], 'age': 15, 'mode': 'Teen'});
+      return _json(201, children.last);
+    }
+    if (path.endsWith('/coach/messages') && request.method == 'POST') {
+      coachMessages.add(body!['text'] as String);
+      return _json(200, coachReply);
+    }
+    if (request.method == 'GET') {
+      return _json(200, <dynamic>[]);
+    }
+    return _json(404, null);
+  }
+
+  static http.Response _json(int status, Object? body) => http.Response.bytes(
+        body == null ? const <int>[] : utf8.encode(jsonEncode(body)),
+        status,
+        headers: {'content-type': 'application/json; charset=utf-8'},
+      );
+}
+
+Future<FakeServer> pumpApp(WidgetTester tester, {bool signedIn = false, bool ready = false}) async {
+  final server = FakeServer();
+  final tokens = MemoryTokenStore();
+  if (signedIn || ready) {
+    await tokens.write(const Tokens(access: 'a', refresh: 'r'));
+  }
+  if (ready) {
+    server.consented = true;
+    server.children.add({'id': 'c1', 'nickname': 'נועה', 'birthYear': 2011, 'age': 15, 'mode': 'Teen'});
+  }
+
+  final api = ApiClient(baseUrl: 'http://test', tokens: tokens, httpClient: server.client);
+  await tester.pumpWidget(ChildTreatmentApp(state: AppState(api)));
+  await tester.pumpAndSettle();
+  return server;
+}
 
 void main() {
   testWidgets('the app is laid out right to left', (tester) async {
-    await tester.pumpWidget(const ChildTreatmentApp());
+    await pumpApp(tester);
 
-    final context = tester.element(find.text(Strings.homeGreeting));
+    final context = tester.element(find.text(Strings.appTitle));
     expect(Directionality.of(context), TextDirection.rtl);
   });
 
-  testWidgets('the crisis button on the home screen opens the emergency contacts', (tester) async {
-    await tester.pumpWidget(const ChildTreatmentApp());
+  testWidgets('the emergency contacts can be reached before signing in', (tester) async {
+    await pumpApp(tester);
 
     await tester.tap(find.text(Strings.crisisButton));
     await tester.pumpAndSettle();
@@ -23,5 +100,71 @@ void main() {
       expect(find.text(contact.name), findsOneWidget);
       expect(find.textContaining(contact.phone), findsOneWidget);
     }
+  });
+
+  testWidgets('a new parent registers, consents, adds a child and reaches the coach', (tester) async {
+    final server = await pumpApp(tester);
+
+    await tester.tap(find.text(Strings.switchToRegister));
+    await tester.pump();
+    await tester.enterText(find.byType(TextFormField).at(0), 'parent@example.com');
+    await tester.enterText(find.byType(TextFormField).at(1), 'a long password');
+    await tester.tap(find.text(Strings.register));
+    await tester.pumpAndSettle();
+
+    // Consent comes before anything about a child, and cannot be skipped.
+    expect(find.text(Strings.consentTitle), findsOneWidget);
+    expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, Strings.continueLabel)).onPressed, isNull);
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    await tester.ensureVisible(find.text(Strings.continueLabel));
+    await tester.tap(find.text(Strings.continueLabel));
+    await tester.pumpAndSettle();
+    expect(server.consented, isTrue);
+
+    expect(find.text(Strings.addChildTitle), findsOneWidget);
+    await tester.enterText(find.byType(TextFormField).first, 'נועה');
+    await tester.tap(find.byType(DropdownButtonFormField<int>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('${DateTime.now().year - 15}').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.continueLabel));
+    await tester.pumpAndSettle();
+
+    expect(find.text('נועה'), findsOneWidget);
+    expect(find.text(Strings.coachEmpty), findsOneWidget);
+    expect(find.text(Strings.tabLog), findsOneWidget);
+    expect(find.text(Strings.tabMap), findsOneWidget);
+  });
+
+  testWidgets('a message to the coach shows the reply', (tester) async {
+    final server = await pumpApp(tester, ready: true);
+
+    await tester.enterText(find.byType(TextField), 'מה עושים הערב?');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+
+    expect(server.coachMessages, ['מה עושים הערב?']);
+    expect(find.text('מה עושים הערב?'), findsOneWidget);
+    expect(find.text('תשובת המאמן'), findsOneWidget);
+  });
+
+  testWidgets('a crisis reply offers the emergency screen', (tester) async {
+    final server = await pumpApp(tester, ready: true);
+    server.coachReply = {'kind': 'Crisis', 'text': 'זה דורש איש מקצוע עכשיו', 'contacts': <dynamic>[]};
+
+    await tester.enterText(find.byType(TextField), 'הודעה מדאיגה');
+    await tester.tap(find.byIcon(Icons.send));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(Strings.crisisOpenScreen));
+    await tester.pumpAndSettle();
+    expect(find.byType(CrisisScreen), findsOneWidget);
+  });
+
+  testWidgets('a parent who has not consented is taken to the consent screen', (tester) async {
+    await pumpApp(tester, signedIn: true);
+
+    expect(find.text(Strings.consentTitle), findsOneWidget);
   });
 }

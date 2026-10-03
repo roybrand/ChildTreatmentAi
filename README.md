@@ -31,10 +31,34 @@ dotnet run --project backend/src/ChildTreatment.Api
 
 In development the API applies database migrations on start.
 
+The API listens on http://localhost:5080.
+
+## Run the app
+
+Requires Flutter. For an Android phone it also requires a JDK and the Android SDK.
+
+```bash
+cd mobile
+flutter run -d chrome            # preview in the browser
+```
+
+On an Android phone, with the API running on this computer:
+
+1. On the phone, turn on Developer options and USB debugging, and connect it by USB.
+2. Let the phone reach the API on this computer, then start the app:
+
+```bash
+adb reverse tcp:5080 tcp:5080
+flutter run
+```
+
+To point the app at another server, add `--dart-define=API_BASE_URL=https://...`.
+
 ## Test
 
 ```bash
-dotnet test
+dotnet test                      # backend
+cd mobile && flutter test        # app
 ```
 
 ## Evaluate the Parent Coach
