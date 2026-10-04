@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../api/api_client.dart';
 import '../api/models.dart';
 import '../strings.dart';
+import '../widgets/cartoon.dart';
 import '../widgets/chat.dart';
 import '../widgets/errors.dart';
 import '../widgets/scene.dart';
@@ -116,11 +117,15 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             Center(child: Bob(child: Text(world.emoji, style: const TextStyle(fontSize: 88)))),
             const SizedBox(height: 8),
             Text(world.world, style: theme.textTheme.displaySmall, textAlign: TextAlign.center),
-            const SizedBox(height: 8),
-            Text(
-              '${widget.child.nickname}, ${world.greeting}',
-              style: theme.textTheme.titleLarge?.copyWith(height: 1.4),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 20),
+            // The figure who lives in this world greets the learner by name.
+            Center(
+              child: Character(
+                face: world.customer,
+                figure: figureFor(world.world),
+                says: '${widget.child.nickname}, ${world.greeting}',
+                lively: true,
+              ),
             ),
           ],
           const SizedBox(height: 28),

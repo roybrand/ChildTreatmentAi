@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/models.dart';
 import '../lesson/mixer_lesson.dart';
 import '../strings.dart';
+import '../widgets/cartoon.dart';
 import '../widgets/chat.dart';
 import '../widgets/crisis_button.dart';
 import '../widgets/errors.dart';
@@ -171,7 +172,7 @@ class _LessonScreenState extends State<LessonScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 24),
                     child: switch (step) {
                       TellStep(:final text, :final show, :final fromCustomer) => fromCustomer
-                          ? _Speech(face: world.customer, text: text, large: true)
+                          ? _Speech(face: world.customer, figure: figureFor(world.world), text: text, large: true)
                           : _Tell(text: text, show: show, world: world),
                       DoneStep(:final text) => _Tell(text: text, show: const [], world: world),
                       final MixStep mix => _Mixer(
@@ -268,8 +269,11 @@ class _Tell extends StatelessWidget {
 
 /// Something said by whoever asks for the mix: their face, and their words in a speech bubble.
 class _Speech extends StatelessWidget {
-  const _Speech({required this.face, required this.text, this.large = false});
+  const _Speech({required this.face, required this.text, this.figure, this.large = false, this.happy = false});
 
+  /// The cartoon figure to draw. Without one, the emoji [face] is shown.
+  final Figure? figure;
+  final bool happy;
   final String face;
   final String text;
   final bool large;
@@ -291,7 +295,11 @@ class _Speech extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: scheme.outlineVariant, width: 2),
           ),
-          child: Text(face, style: TextStyle(fontSize: large ? 64 : 36)),
+          child: figure == null
+              ? Text(face, style: TextStyle(fontSize: large ? 64 : 36))
+              : ClipOval(
+                  child: Cartoon(figure: figure!, mood: happy ? Mood.happy : Mood.asking, size: large ? 112 : 64),
+                ),
         ),
         const SizedBox(height: 12),
         Container(
@@ -583,7 +591,7 @@ class _ExplanationState extends State<_Explanation> {
                       ),
                       if (last) ...[
                         const SizedBox(height: 12),
-                        _Speech(face: world.customer, text: world.thanks),
+                        _Speech(face: world.customer, figure: figureFor(world.world), text: world.thanks, happy: true),
                       ],
                     ],
                   ),
@@ -700,7 +708,7 @@ class _Mixer extends StatelessWidget {
         // When the mix matches, the one who asked for it answers.
         if (matches) ...[
           const SizedBox(height: 16),
-          _Speech(face: world.customer, text: world.thanks),
+          _Speech(face: world.customer, figure: figureFor(world.world), text: world.thanks, happy: true),
         ],
       ],
     );

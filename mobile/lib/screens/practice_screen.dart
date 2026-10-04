@@ -4,6 +4,7 @@ import '../api/api_client.dart';
 import '../api/models.dart';
 import '../strings.dart';
 import '../widgets/crisis_button.dart';
+import '../widgets/cartoon.dart';
 import '../widgets/errors.dart';
 import '../widgets/scene.dart';
 
@@ -258,6 +259,8 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     final world = widget.world;
     final questions = _questions;
     final face = world?.customer ?? '🙂';
+    // The cartoon figure who belongs to this world asks the questions.
+    final figure = figureFor(world?.world ?? '');
 
     // The stage is dark, so everything on it takes a dark theme in the colour of the learner's world.
     final stage = ThemeData(
@@ -283,7 +286,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Burst(symbols: world?.decor ?? '✨'),
-                  Character(face: face, says: Strings.practiceDone, lively: true),
+                  Character(face: face, figure: figure, says: Strings.practiceDone, lively: true),
                   const SizedBox(height: 20),
                   FilledButton(onPressed: _load, child: const Text(Strings.practiceMore)),
                 ],
@@ -325,6 +328,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 // The character asks the question, and answers when it comes out right.
                 Character(
                   face: face,
+                  figure: figure,
                   says: solved ? (world?.thanks ?? Strings.practiceSame) : question.ask.text,
                   lively: solved,
                 ),

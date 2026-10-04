@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../api/models.dart';
+import 'cartoon.dart';
 
 /// The learner's world as a backdrop: its two colours as a soft gradient, and the things that
 /// belong to it drifting slowly behind the content.
@@ -169,8 +170,17 @@ class _BobState extends State<Bob> with SingleTickerProviderStateMixin {
 
 /// The face of a character in a ring, with what it says in a bubble under it.
 class Character extends StatelessWidget {
-  const Character({super.key, required this.face, required this.says, this.lively = false, this.size = 96});
+  const Character({
+    super.key,
+    required this.face,
+    required this.says,
+    this.figure,
+    this.lively = false,
+    this.size = 112,
+  });
 
+  /// The cartoon figure to draw. Without one, the emoji [face] is shown.
+  final Figure? figure;
   final String face;
   final String says;
   final bool lively;
@@ -195,7 +205,12 @@ class Character extends StatelessWidget {
               shape: BoxShape.circle,
               boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 18, offset: Offset(0, 6))],
             ),
-            child: Text(face, style: TextStyle(fontSize: size * 0.58)),
+            // The figure is cut to the ring, so its shoulders end at the edge like a portrait.
+            child: figure == null
+                ? Text(face, style: TextStyle(fontSize: size * 0.58))
+                : ClipOval(
+                    child: Cartoon(figure: figure!, mood: lively ? Mood.happy : Mood.asking, size: size),
+                  ),
           ),
         ),
         const SizedBox(height: 12),
