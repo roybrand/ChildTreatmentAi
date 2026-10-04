@@ -13,6 +13,7 @@ public sealed record SendInterviewMessageRequest(string Text);
 public sealed record UpdateProfileItemRequest(ProfileItemStatus Status, string? Text);
 public sealed record LessonProgressRequest(int Step, bool Completed);
 public sealed record PracticeAnswer(string? QuestionId, string? Answer);
+public sealed record PracticeOutcome(bool GotIt);
 
 /// <summary>The Profile Agent's interview and the Planner's weekly summary.</summary>
 public static class AgentEndpoints
@@ -93,14 +94,44 @@ public static class AgentEndpoints
 
         // Practice questions told as stories from the learner's world, where a question has a story.
         child.MapGet("/practice/{subtopicId}", async (
-            Guid childId, string subtopicId, int? count, Curriculum curriculum, LessonService lessons, CancellationToken ct) =>
+            Guid childId, string subtopicId, int? count, bool? easy, Curriculum curriculum, LessonService lessons,
+            CancellationToken ct) =>
         {
             var world = await lessons.WorldAsync(childId, ct);
             if (world is null)
                 return Results.NotFound();
             var questions = curriculum.Questions(
-                subtopicId, Math.Clamp(count ?? 5, 1, 10), Random.Shared, new Story(world.World, world.Items));
+                subtopicId, Math.Clamp(count ?? 5, 1, 10), Random.Shared, new Story(world.World, world.Items), easy ?? false);
             return questions is null ? Results.NotFound() : Results.Ok(questions);
+        });
+
+        // How one question went. It is kept so a sub-topic that did not go well can be brought back.
+        child.MapPost("/practice/{subtopicId}/result", async (
+            Guid childId, string subtopicId, PracticeOutcome outcome, Curriculum curriculum, AppDbContext db, TimeProvider time) =>
+        {
+            if (!curriculum.HasQuestions(subtopicId) || !await db.Children.AnyAsync(c => c.Id == childId))
+                return Results.NotFound();
+
+            db.PracticeRecords.Add(new PracticeRecord
+            {
+                Id = Guid.NewGuid(),
+                ChildId = childId,
+                SubtopicId = subtopicId,
+                GotIt = outcome.GotIt,
+                CreatedAt = time.GetUtcNow(),
+            });
+            await db.SaveChangesAsync();
+            return Results.NoContent();
+        });
+
+        child.MapGet("/practice-progress", async (Guid childId, AppDbContext db, TimeProvider time) =>
+        {
+            var records = await db.PracticeRecords
+                .Where(p => p.ChildId == childId)
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(3000)
+                .ToListAsync();
+            return PracticeProgress.Of(records, time.GetUtcNow());
         });
 
         // Opening a lesson for the first time asks the Tutor to set it in the child's world.

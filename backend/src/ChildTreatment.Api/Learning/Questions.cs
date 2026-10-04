@@ -67,7 +67,17 @@ public sealed record Line(string Text, string? Math = null);
 public sealed record Story(string Place, string Items);
 
 /// <summary>One question. Every number in it, its answer, and its explanation are made by code.</summary>
-public sealed record Question(Line Ask, Rational Answer, IReadOnlyList<Line> Steps);
+/// <param name="More">A second explanation, told another way, for a learner the first one did not reach.</param>
+public sealed record Question(
+    Line Ask, Rational Answer, IReadOnlyList<Line> Steps, Visual? Visual = null, IReadOnlyList<Line>? More = null);
+
+/// <summary>
+/// A picture of the solution, as numbers for the app to draw. The drawing is the app's; what it shows
+/// is decided here, by code, from the same numbers as the answer.
+/// </summary>
+/// <param name="Kind">shelves: two shelves holding Numbers[0] and Numbers[1] groups of Numbers[2] things each.
+/// percent: Numbers[0] percent of Numbers[1] is Numbers[2].</param>
+public sealed record Visual(string Kind, IReadOnlyList<int> Numbers);
 
 /// <summary>
 /// Makes questions for the sub-topics of the curriculum. A question is rebuilt from its generator's
@@ -81,8 +91,12 @@ public static class QuestionBank
 
     /// <param name="story">When given, a question that has a story is told in this world. The numbers, the
     /// answer, and the steps are the same either way, so an answer is checked without knowing the world.</param>
-    public static Question Make(string generator, int seed, Story? story = null) =>
-        Makers[generator](new Random(seed), story);
+    /// <param name="easy">Smaller numbers, for the question that follows one the learner did not get.</param>
+    public static Question Make(string generator, int seed, Story? story = null, bool easy = false) =>
+        Makers[generator](easy ? new EasyRandom(seed) : new Random(seed), story);
+
+    /// <summary>Marks a question as an easy one. Every range a generator draws from is narrowed to its low end.</summary>
+    private sealed class EasyRandom(int seed) : Random(seed);
 
     /// <summary>The generators whose questions can be told as a story from the learner's world.</summary>
     public static readonly IReadOnlySet<string> WithStory = new HashSet<string>
@@ -91,7 +105,16 @@ public static class QuestionBank
         "proportion", "percent-of", "percent-change", "mean",
     };
 
-    private static int R(Random r, int from, int to) => r.Next(from, to + 1);
+    private static int R(Random r, int from, int to)
+    {
+        if (r is not EasyRandom)
+            return r.Next(from, to + 1);
+
+        // An easy question keeps the small end of each range, with at least two values to choose from.
+        // A range that crosses zero keeps its small positive numbers, since a negative is not easier.
+        var low = from < 0 && to > 0 ? 1 : from;
+        return r.Next(low, Math.Min(to, low + Math.Max(1, (to - low) / 3)) + 1);
+    }
     private static T Pick<T>(Random r, params T[] options) => options[r.Next(options.Length)];
     /// <summary>A number as a term after the first: "+ 5" or "− 5".</summary>
     private static string Plus(int n) => n < 0 ? $"{M} {-n}" : $"+ {n}";
@@ -103,6 +126,15 @@ public static class QuestionBank
 
     private static readonly Dictionary<string, Func<Random, Story?, Question>> Makers = new()
     {
+        // ---- Grades 5 and 6 ----
+        ["equivalent-fraction"] = (r, w) =>
+        {
+            int b = R(r, 2, 8), a = R(r, 1, b - 1), k = R(r, 2, 6);
+            return Q("השלימו כך שיתקבלו שברים שווים. מהו x?", $"{a}/{b} = x/{b * k}", a * k,
+                new Line($"המכנה הוכפל ב-{k}.", $"{b}·{k} = {b * k}"),
+                new Line("כדי שהשבר יישאר שווה, מכפילים גם את המונה באותו מספר.", $"x = {a}·{k} = {a * k}"));
+        },
+
         // ---- Grade 7 ----
         ["sequence-term"] = (r, w) =>
         {
@@ -260,9 +292,21 @@ public static class QuestionBank
                     ? $"מחלקים {total} שקלים בין שניים ביחס {a}:{b}. כמה שקלים מקבל הראשון?"
                     : $"ב{w.Place} מסדרים {total} {w.Items} על שני מדפים, ביחס {a}:{b}. כמה יהיו על המדף הראשון?",
                 null, a * k,
-                new Line("סופרים כמה חלקים שווים יש בסך הכול.", $"{a} + {b} = {a + b}"),
-                new Line("מוצאים כמה שווה חלק אחד.", $"{total} : {a + b} = {k}"),
-                new Line($"הראשון מקבל {a} חלקים.", $"{a}·{k} = {a * k}"));
+                // Told as dealing out in rounds, which a learner can picture. "Equal parts" was not clear.
+                new Line($"היחס {a}:{b} אומר: בכל פעם שהראשון מקבל {a}, השני מקבל {b}."),
+                new Line("אז מחלקים בסיבובים. כמה מחלקים בסיבוב אחד?", $"{a} + {b} = {a + b}"),
+                new Line($"כמה סיבובים צריך עד שכל ה-{total} מחולקים?", $"{total} : {a + b} = {k}"),
+                new Line($"הראשון מקבל {a} בכל סיבוב, ויש {k} סיבובים.", $"{a}·{k} = {a * k}")) with
+            {
+                Visual = new Visual("shelves", [a, b, k]),
+                // A second way, slower: the rounds one by one, with the running total, until everything is dealt.
+                More =
+                [
+                    new Line("אפשר גם בלי חילוק: מחלקים סיבוב אחרי סיבוב, וסופרים כמה כבר חולק."),
+                    .. Enumerable.Range(1, k).Select(i => new Line($"סיבוב {i}:", $"{a * i} + {b * i} = {(a + b) * i}")),
+                    new Line($"בסיבוב {k} הגענו בדיוק ל-{total}, אז עוצרים. הראשון קיבל עד עכשיו:", $"{a * k}"),
+                ],
+            };
         },
         ["proportion"] = (r, w) =>
         {
@@ -310,7 +354,7 @@ public static class QuestionBank
                     ? $"כמה הם {p}% מתוך {n}?"
                     : $"ב{w.Place} יש {n} {w.Items}, ו-{p}% כבר נמכרו. כמה נמכרו?",
                 null, n * p / 100,
-                new Line("אחוז הוא חלק ממאה: מכפילים באחוז ומחלקים ב-100.", $"{n}·{p} : 100 = {n * p / 100}"));
+                new Line("אחוז הוא חלק ממאה: מכפילים באחוז ומחלקים ב-100.", $"{n}·{p} : 100 = {n * p / 100}")) with { Visual = new Visual("percent", [p, n, n * p / 100]) };
         },
         ["percent-change"] = (r, w) =>
         {
@@ -321,7 +365,7 @@ public static class QuestionBank
                     : $"ב{w.Place}, חבילה של {w.Items} עולה {n} שקלים. היום יש הנחה של {p}%. מה המחיר אחרי ההנחה?",
                 null, n - n * p / 100,
                 new Line("מחשבים את גודל ההוזלה.", $"{n}·{p} : 100 = {n * p / 100}"),
-                new Line("מחסרים אותה מהמחיר.", $"{n} {M} {n * p / 100} = {n - n * p / 100}"));
+                new Line("מחסרים אותה מהמחיר.", $"{n} {M} {n * p / 100} = {n - n * p / 100}")) with { Visual = new Visual("percent", [p, n, n * p / 100]) };
         },
         ["mean"] = (r, w) =>
         {

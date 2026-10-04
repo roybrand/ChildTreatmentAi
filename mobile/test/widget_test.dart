@@ -22,6 +22,7 @@ class FakeServer {
   final coachMessages = <String>[];
   final profileItems = <Map<String, dynamic>>[];
   int lessonStep = 0;
+  final practiceResults = <bool>[];
 
   /// Whether the parent coaching side is switched on. The real server has it off.
   bool coaching = true;
@@ -81,6 +82,7 @@ class FakeServer {
                 'subtopics': [
                   {'id': 's1', 'title': 'פתרון משוואות', 'generator': 'linear-equation'},
                   {'id': 's2', 'title': 'שאלות מילוליות', 'generator': null},
+                  {'id': 's3', 'title': 'שברים שווים', 'generator': null, 'lesson': 'fractions-mixer-1'},
                 ],
               },
             ],
@@ -95,11 +97,36 @@ class FakeServer {
         'steps': [
           {'text': 'מחסרים 1 משני האגפים.', 'math': '2·x = 6'},
         ],
+        'more': [
+          {'text': 'אפשר גם לנסות מספרים.', 'math': '2·3 + 1 = 7'},
+        ],
       });
     }
-    if (path.endsWith('/practice/s1')) {
+    if (path.endsWith('/practice/s1/result')) {
+      practiceResults.add(body!['gotIt'] as bool);
+      return _json(204, null);
+    }
+    if (path.endsWith('/practice-progress')) {
       return _json(200, [
-        {'id': 's1:1', 'text': 'פתרו את המשוואה. מהו x?', 'math': '2·x + 1 = 7'},
+        if (practiceResults.isNotEmpty)
+          {
+            'subtopicId': 's1',
+            'tried': practiceResults.length,
+            'gotIt': practiceResults.where((g) => g).length,
+            'comeBack': !practiceResults.last,
+            'lastAt': '2026-10-04T09:00:00Z',
+            'triedThisWeek': practiceResults.length,
+            'gotItThisWeek': practiceResults.where((g) => g).length,
+          },
+      ]);
+    }
+    if (path.endsWith('/practice/s1')) {
+      // An easy question is asked for after a miss. Its id carries the mark.
+      final easy = request.url.queryParameters['easy'] == 'true';
+      return _json(200, [
+        easy
+            ? {'id': 's1:2:e', 'text': 'פתרו את המשוואה. מהו x?', 'math': 'x + 1 = 4'}
+            : {'id': 's1:1', 'text': 'פתרו את המשוואה. מהו x?', 'math': '2·x + 1 = 7'},
       ]);
     }
     if (path.endsWith('/progress')) {
@@ -333,9 +360,8 @@ void main() {
     await pumpApp(tester, ready: true, coaching: false);
 
     expect(find.text(Strings.tabHome), findsOneWidget);
-    expect(find.text(Strings.tabTopics), findsOneWidget);
-    // The welcome page is in the learner's world: its name, and a greeting by name.
-    expect(find.text('סטודיו ללק'), findsOneWidget);
+    // The home page is in the learner's world: its name, and a greeting by name.
+    expect(find.textContaining('סטודיו ללק'), findsOneWidget);
     expect(find.textContaining('נועה,'), findsOneWidget);
     expect(find.text(Strings.tabCoach), findsNothing);
     expect(find.text(Strings.tabLog), findsNothing);
@@ -358,16 +384,20 @@ void main() {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(412, 915);
     addTearDown(tester.view.reset);
-    await pumpApp(tester, ready: true, coaching: false);
+    final server = await pumpApp(tester, ready: true, coaching: false);
 
-    await tester.tap(find.text(Strings.tabTopics));
+    // The home page is the tree: the class, the subject, then the topic with its sub-topics under it.
+    final tree = find.byType(Scrollable).first;
+    await tester.scrollUntilVisible(find.text(Strings.practiceGo), 200, scrollable: tree);
+    await tester.ensureVisible(find.text(Strings.practiceGo));
     await tester.pumpAndSettle();
-    // The whole map is in view: the topic, and under it its sub-topics.
+    expect(find.text('כיתה ז'), findsOneWidget);
+    expect(find.text(Strings.subjectMath), findsOneWidget);
     expect(find.text('פתרון משוואות ושאלות מילוליות'), findsOneWidget);
     // A sub-topic with no questions yet says so and does not open.
-    expect(find.textContaining(Strings.practiceSoon), findsOneWidget);
+    expect(find.text(Strings.practiceSoon), findsOneWidget);
 
-    await tester.tap(find.text('פתרון משוואות'));
+    await tester.tap(find.text(Strings.practiceGo));
     await tester.pumpAndSettle();
     expect(find.text('2·x + 1 = 7'), findsOneWidget);
 
@@ -381,21 +411,63 @@ void main() {
     expect(find.text('2·x = 6'), findsOneWidget);
     expect(find.text(Strings.practiceTheAnswer('3')), findsOneWidget);
 
+    // A second explanation is one tap away, and it ends by saying that moving on is fine.
+    await tester.dragUntilVisible(find.text(Strings.practiceAnotherWay), find.byType(ListView), const Offset(0, -200));
+    await tester.ensureVisible(find.text(Strings.practiceAnotherWay));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.practiceAnotherWay));
+    await tester.pumpAndSettle();
+    expect(find.text('2·3 + 1 = 7'), findsOneWidget);
+    await tester.dragUntilVisible(find.text(Strings.practiceNextQuestion), find.byType(ListView), const Offset(0, -200));
+    expect(find.text(Strings.practiceComeBack), findsOneWidget);
+    await tester.ensureVisible(find.text(Strings.practiceNextQuestion));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(Strings.practiceNextQuestion));
+    await tester.pumpAndSettle();
+
+    // A question that was not got is followed by an easier one of the same kind, and the miss is recorded.
+    expect(find.text(Strings.practiceEasier), findsOneWidget);
+    expect(find.text('x + 1 = 4'), findsOneWidget);
+    expect(server.practiceResults, [false]);
+
+    // Getting the easier one right ends the set: an easy question is not followed by another.
+    await tester.enterText(find.byType(TextField), '3');
+    await tester.tap(find.text(Strings.practiceCheck));
+    await tester.pumpAndSettle();
+    await tester.dragUntilVisible(find.text(Strings.practiceNextQuestion), find.byType(ListView), const Offset(0, -200));
+    await tester.ensureVisible(find.text(Strings.practiceNextQuestion));
+    await tester.pumpAndSettle();
     await tester.tap(find.text(Strings.practiceNextQuestion));
     await tester.pumpAndSettle();
     expect(find.text(Strings.practiceDone), findsOneWidget);
+    expect(server.practiceResults, [false, true]);
+
+    // Back on the home page, the sub-topic is marked by how it went last.
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.practiceSteadyMark), findsOneWidget);
+
+    // The parent's page says the same in numbers: two tried, one without seeing the solution.
+    await tester.tap(find.text(Strings.tabParent));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.parentTitle('נועה')), findsOneWidget);
+    expect(find.textContaining(Strings.parentLine(2, 1, '4.10.2026')), findsOneWidget);
+    expect(find.text('פתרון משוואות'), findsOneWidget);
   });
 
   testWidgets('the tutor opens a lesson from the lessons list', (tester) async {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(412, 915);
+    // Tall enough for the welcome and the whole tree, so the lesson button is in view.
+    tester.view.physicalSize = const Size(412, 1700);
     addTearDown(tester.view.reset);
     await pumpApp(tester, ready: true, coaching: false);
 
-    await tester.scrollUntilVisible(find.text(Strings.lessonStart), 200, scrollable: find.byType(Scrollable).first);
-    await tester.ensureVisible(find.text(Strings.lessonStart));
+    // The lesson sits in the tree, on the sub-topic it teaches.
+    await tester.scrollUntilVisible(find.text(Strings.lessonOpen), 200, scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(find.text(Strings.lessonOpen));
     await tester.pumpAndSettle();
-    await tester.tap(find.text(Strings.lessonStart));
+    await tester.tap(find.text(Strings.lessonOpen));
     await tester.pumpAndSettle();
 
     expect(find.textContaining('סטודיו ללק'), findsOneWidget);

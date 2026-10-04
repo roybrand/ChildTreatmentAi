@@ -171,6 +171,21 @@ public class ChildLesson : IFamilyOwned
     public DateTimeOffset CreatedAt { get; set; }
 }
 
+/// <summary>
+/// How one practice question went for a learner. It holds no question and no answer: only which
+/// sub-topic, and whether the learner got it without being shown the solution.
+/// </summary>
+public class PracticeRecord : IFamilyOwned
+{
+    public Guid Id { get; set; }
+    public Guid FamilyId { get; set; }
+    public Guid ChildId { get; set; }
+    public string SubtopicId { get; set; } = "";
+    /// <summary>True when the answer fitted and the solution had not been shown.</summary>
+    public bool GotIt { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
 // Stored as numbers: add new values at the end only.
 public enum SafetySource
 {

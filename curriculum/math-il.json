@@ -8,7 +8,112 @@
     "url": "https://meyda.education.gov.il/files/Curriculum/math_7_9.pdf",
     "read_on": "2026-10-04"
   },
+  "primary_source": {
+    "title": "תוכנית הלימודים במתמטיקה לבית הספר היסודי",
+    "publisher": "משרד החינוך",
+    "url": "https://pop.education.gov.il/tchumey_daat/matmatika/yesodi/oraat-math/tohnit-limudim/",
+    "read_on": "2026-10-04",
+    "note": "Grades 5 and 6 hold topic names only, from the Ministry's overview page. Their teaching hours and sub-topics were not read from the Ministry's per-grade documents, so hours are 0 and every sub-topic title is ours."
+  },
   "grades": [
+    {
+      "grade": 5,
+      "name": "כיתה ה",
+      "hours": 0,
+      "topics": [
+        {
+          "id": "g5-natural", "domain": "number", "round": 1, "hours": 0,
+          "title": "פעולות במספרים טבעיים",
+          "title_en": "Operations with natural numbers",
+          "subtopics": [
+            { "id": "g5-natural-order", "title": "סדר פעולות החשבון", "title_en": "Order of operations", "generator": "order-of-operations" }
+          ]
+        },
+        {
+          "id": "g5-fractions", "domain": "number", "round": 1, "hours": 0,
+          "title": "שברים פשוטים ועשרוניים",
+          "title_en": "Simple fractions and decimals",
+          "subtopics": [
+            { "id": "g5-fractions-equal", "title": "שברים שווים: הרחבה וצמצום", "title_en": "Equal fractions: expanding and reducing", "generator": "equivalent-fraction", "lesson": "fractions-mixer-1" },
+            { "id": "g5-fractions-operations", "title": "חיבור וחיסור שברים", "title_en": "Adding and subtracting fractions", "generator": null },
+            { "id": "g5-decimals", "title": "שברים עשרוניים", "title_en": "Decimals", "generator": null }
+          ]
+        },
+        {
+          "id": "g5-data", "domain": "number", "round": 1, "hours": 0,
+          "title": "חקר נתונים",
+          "title_en": "Data investigation",
+          "subtopics": [
+            { "id": "g5-data-mean", "title": "ממוצע", "title_en": "The mean", "generator": "mean" }
+          ]
+        },
+        {
+          "id": "g5-geometry", "domain": "geometry", "round": 1, "hours": 0,
+          "title": "גאומטריה ומדידות",
+          "title_en": "Geometry and measurement",
+          "subtopics": [
+            { "id": "g5-geometry-rectangle", "title": "היקף ושטח מלבן", "title_en": "Perimeter and area of a rectangle", "generator": "rectangle-area" },
+            { "id": "g5-geometry-box", "title": "נפח תיבה", "title_en": "Volume of a box", "generator": "box-volume" }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 6,
+      "name": "כיתה ו",
+      "hours": 0,
+      "topics": [
+        {
+          "id": "g6-fractions", "domain": "number", "round": 1, "hours": 0,
+          "title": "שברים פשוטים ועשרוניים",
+          "title_en": "Simple fractions and decimals",
+          "subtopics": [
+            { "id": "g6-fractions-equal", "title": "שברים שווים: הרחבה וצמצום", "title_en": "Equal fractions: expanding and reducing", "generator": "equivalent-fraction", "lesson": "fractions-mixer-1" },
+            { "id": "g6-fractions-operations", "title": "כפל וחילוק שברים", "title_en": "Multiplying and dividing fractions", "generator": null }
+          ]
+        },
+        {
+          "id": "g6-percent", "domain": "number", "round": 1, "hours": 0,
+          "title": "אחוזים",
+          "title_en": "Percentages",
+          "subtopics": [
+            { "id": "g6-percent-of", "title": "חישוב חלק מכמות באחוזים", "title_en": "A percentage of an amount", "generator": "percent-of" }
+          ]
+        },
+        {
+          "id": "g6-ratio", "domain": "number", "round": 1, "hours": 0,
+          "title": "יחס",
+          "title_en": "Ratio",
+          "subtopics": [
+            { "id": "g6-ratio-share", "title": "חלוקה לפי יחס נתון", "title_en": "Sharing in a given ratio", "generator": "ratio-share" }
+          ]
+        },
+        {
+          "id": "g6-scale", "domain": "number", "round": 1, "hours": 0,
+          "title": "קנה מידה",
+          "title_en": "Scale",
+          "subtopics": [
+            { "id": "g6-scale-map", "title": "קנה מידה במפה", "title_en": "Scale on a map", "generator": "scale" }
+          ]
+        },
+        {
+          "id": "g6-data", "domain": "number", "round": 1, "hours": 0,
+          "title": "חקר נתונים",
+          "title_en": "Data investigation",
+          "subtopics": [
+            { "id": "g6-data-mean", "title": "ממוצע", "title_en": "The mean", "generator": "mean" }
+          ]
+        },
+        {
+          "id": "g6-measurement", "domain": "geometry", "round": 1, "hours": 0,
+          "title": "מדידות",
+          "title_en": "Measurement",
+          "subtopics": [
+            { "id": "g6-measurement-triangle", "title": "שטח משולש", "title_en": "Area of a triangle", "generator": "triangle-area" }
+          ]
+        }
+      ]
+    },
     {
       "grade": 7,
       "name": "כיתה ז",

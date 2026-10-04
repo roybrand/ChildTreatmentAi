@@ -186,8 +186,20 @@ class ApiClient {
   }
 
   /// Questions for a sub-topic, told as stories from this learner's world where a question has a story.
-  Future<List<PracticeQuestion>> practice(String childId, String subtopicId) async =>
-      _list(await _send('GET', '/api/children/$childId/practice/$subtopicId'), PracticeQuestion.fromJson);
+  /// [easy] asks for questions with smaller numbers, for after one the learner did not get.
+  Future<List<PracticeQuestion>> practice(String childId, String subtopicId, {int count = 5, bool easy = false}) async =>
+      _list(
+        await _send('GET', '/api/children/$childId/practice/$subtopicId?count=$count${easy ? '&easy=true' : ''}'),
+        PracticeQuestion.fromJson,
+      );
+
+  /// Records how one question went, so a sub-topic that did not go well can be brought back.
+  Future<void> recordPractice(String childId, String subtopicId, {required bool gotIt}) async {
+    await _send('POST', '/api/children/$childId/practice/$subtopicId/result', body: {'gotIt': gotIt});
+  }
+
+  Future<List<SubtopicProgress>> practiceProgress(String childId) async =>
+      _list(await _send('GET', '/api/children/$childId/practice-progress'), SubtopicProgress.fromJson);
 
   Future<PracticeCheck> checkAnswer(String questionId, String answer) async {
     final json = await _send('POST', '/api/practice/check', body: {'questionId': questionId, 'answer': answer});

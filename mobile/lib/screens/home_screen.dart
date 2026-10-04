@@ -11,6 +11,7 @@ import 'accommodations_screen.dart';
 import 'coach_screen.dart';
 import 'lesson_screen.dart';
 import 'lessons_screen.dart';
+import 'parent_screen.dart';
 import 'practice_screen.dart';
 import 'log_screen.dart';
 import 'profile_screen.dart';
@@ -110,16 +111,18 @@ class _HomeScreenState extends State<HomeScreen> {
         (
           Icons.home_outlined,
           Strings.tabHome,
-          WelcomeScreen(
+          // The home page is the tree of what there is to learn, under a welcome into the learner's world.
+          PracticeScreen(
             api: api,
             child: child,
             world: _world,
-            onWorldChanged: _loadWorld,
-            onOpenTopics: () => _selectTab(1),
+            onLessonClosed: _loadWorld,
+            header: WelcomeHeader(api: api, child: child, world: _world, onWorldChanged: _loadWorld),
           ),
         ),
-        (Icons.account_tree_outlined, Strings.tabTopics, PracticeScreen(api: api, child: child, world: _world)),
         (Icons.person_outline, Strings.tabProfile, ContentWidth(child: profile)),
+        // Keyed by the tab, so the page is read again each time the parent comes to it.
+        (Icons.insights_outlined, Strings.tabParent, ParentScreen(key: ValueKey(_tab == 2), api: api, child: child)),
       ],
     ];
 

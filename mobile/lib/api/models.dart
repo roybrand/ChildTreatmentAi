@@ -289,7 +289,10 @@ class Features {
 }
 
 class Subtopic {
-  const Subtopic({required this.id, required this.title, required this.hasQuestions});
+  const Subtopic({required this.id, required this.title, required this.hasQuestions, this.lessonId});
+
+  /// The hand-built lesson that teaches this sub-topic, when there is one.
+  final String? lessonId;
 
   final String id;
   final String title;
@@ -301,6 +304,7 @@ class Subtopic {
         id: json['id'] as String,
         title: json['title'] as String,
         hasQuestions: json['generator'] != null,
+        lessonId: json['lesson'] as String?,
       );
 }
 
@@ -359,7 +363,19 @@ class PracticeQuestion {
 
 /// What the server says about an answer. It is checked by code, with exact arithmetic.
 class PracticeCheck {
-  const PracticeCheck({required this.same, required this.answer, required this.steps});
+  const PracticeCheck({
+    required this.same,
+    required this.answer,
+    required this.steps,
+    this.visual,
+    this.more = const [],
+  });
+
+  /// A second explanation, told another way, for when the first one did not land. Empty when there is none.
+  final List<MathLine> more;
+
+  /// A picture of the solution, when the question has one.
+  final SolutionVisual? visual;
 
   final bool same;
   final String answer;
@@ -369,6 +385,60 @@ class PracticeCheck {
         same: json['same'] as bool,
         answer: json['answer'] as String,
         steps: (json['steps'] as List<dynamic>).map((s) => MathLine.fromJson(s as Map<String, dynamic>)).toList(),
+        visual: json['visual'] == null ? null : SolutionVisual.fromJson(json['visual'] as Map<String, dynamic>),
+        more: ((json['more'] as List<dynamic>?) ?? const [])
+            .map((s) => MathLine.fromJson(s as Map<String, dynamic>))
+            .toList(),
+      );
+}
+
+/// What a picture of a solution shows, as numbers worked out by the server. The app only draws them.
+class SolutionVisual {
+  const SolutionVisual({required this.kind, required this.numbers});
+
+  /// shelves: two shelves with numbers[0] and numbers[1] groups of numbers[2] things each.
+  /// percent: numbers[0] percent of numbers[1] is numbers[2].
+  final String kind;
+  final List<int> numbers;
+
+  factory SolutionVisual.fromJson(Map<String, dynamic> json) => SolutionVisual(
+        kind: json['kind'] as String,
+        numbers: (json['numbers'] as List<dynamic>).cast<int>(),
+      );
+}
+
+/// How the learner is doing on one sub-topic.
+class SubtopicProgress {
+  const SubtopicProgress({
+    required this.subtopicId,
+    required this.tried,
+    required this.gotIt,
+    required this.comeBack,
+    required this.lastAt,
+    this.triedThisWeek = 0,
+    this.gotItThisWeek = 0,
+  });
+
+  /// When the sub-topic was last practised.
+  final DateTime lastAt;
+  final int triedThisWeek;
+  final int gotItThisWeek;
+
+  final String subtopicId;
+  final int tried;
+  final int gotIt;
+
+  /// True when the latest questions did not go well, so the sub-topic is worth returning to.
+  final bool comeBack;
+
+  factory SubtopicProgress.fromJson(Map<String, dynamic> json) => SubtopicProgress(
+        subtopicId: json['subtopicId'] as String,
+        tried: json['tried'] as int,
+        gotIt: json['gotIt'] as int,
+        comeBack: json['comeBack'] as bool,
+        lastAt: DateTime.tryParse(json['lastAt'] as String? ?? '') ?? DateTime.fromMillisecondsSinceEpoch(0),
+        triedThisWeek: json['triedThisWeek'] as int? ?? 0,
+        gotItThisWeek: json['gotItThisWeek'] as int? ?? 0,
       );
 }
 

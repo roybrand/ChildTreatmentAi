@@ -60,6 +60,21 @@ class Strings {
   static const tabSummary = 'סיכום';
   static const tabLessons = 'שיעורים';
   static const tabHome = 'בית';
+  static const tabParent = 'להורים';
+
+  // The parent's view. Facts, no grades.
+  static String parentTitle(String name) => 'איך הולך ל$name בתרגול';
+  static const parentWhatIsKept = 'נשמר רק באיזה נושא תרגלו, והאם ההצלחה הייתה בלי לראות את הפתרון. השאלות והתשובות עצמן לא נשמרות.';
+  static const parentEmpty = 'עדיין אין תרגול. מה שיתורגל יופיע כאן.';
+  static const parentThisWeek = 'בשבעת הימים האחרונים';
+  static const parentTried = 'שאלות שנוסו';
+  static const parentGotIt = 'נפתרו בלי לראות את הפתרון';
+  static const parentSubtopics = 'נושאים שתורגלו';
+  static const parentComeBackWhy = 'בשלוש השאלות האחרונות בנושאים האלה, פחות משתיים נפתרו בלי עזרה. זה לא ציון: זה סימן שכדאי לחזור.';
+  static const parentAll = 'כל מה שתורגל';
+  static const parentRefresh = 'רענון';
+  static String parentLine(int tried, int gotIt, String date) =>
+      'נוסו $tried, מהן $gotIt בלי לראות את הפתרון. לאחרונה: $date';
   static const tabTopics = 'נושאים';
   static const welcomePreparing = 'מכינים את העולם שלך. זה יכול לקחת עד חצי דקה.';
   static const lessonsIntro = 'כל שיעור הוא משחק קצר. אין ציונים, אין שעון, ואפשר לעצור ולחזור מתי שרוצים.';
@@ -167,6 +182,21 @@ class Strings {
   static const practiceTitle = 'תרגול לפי כיתה ונושא';
   static const practiceSubtitle = 'לפי תוכנית הלימודים של משרד החינוך, כיתות ז עד ט';
   static const practiceOpen = 'לבחור נושא';
+  static const practiceGo = 'תרגול';
+
+  // Pictures of a solution. Every number is passed in by code.
+  static const shelfFirst = 'המדף הראשון';
+  static const shelfSecond = 'המדף השני';
+  static String shelfLabel(String shelf, int perRound, int rounds, int things) =>
+      '$shelf: $perRound בכל סיבוב, $rounds סיבובים, ביחד $things';
+  static String shelvesCaption(int first, int second, int rounds) =>
+      'בכל סיבוב מניחים $first על המדף הראשון ו-$second על המדף השני. המספר שמעל כל קבוצה הוא מספר הסיבוב.';
+  static String percentCaption(int percent, int whole, int part) => '$percent מכל 100. מתוך $whole זה $part.';
+  static const treeGrade = 'הכיתה';
+  static const treeSubject = 'המקצוע';
+  static const subjectMath = 'מתמטיקה';
+  // Subjects with no content yet. They are shown so the tree is whole, and marked as coming.
+  static const subjectsComing = [('🔤', 'אנגלית'), ('🔬', 'מדעים')];
   static const practiceSoon = 'בקרוב';
   static const practiceDomains = {'algebra': 'אלגברה', 'number': 'מספרים', 'geometry': 'גאומטריה'};
   static const practiceAnswerHint = 'התשובה';
@@ -174,6 +204,14 @@ class Strings {
   static const practiceSame = 'זו התשובה.';
   static const practiceNotYet = 'זו עוד לא התשובה. אפשר לנסות שוב, או לראות איך פותרים.';
   static const practiceShowHow = 'להראות לי איך';
+  static const practiceEasier = 'שאלה דומה, עם מספרים קטנים יותר.';
+  static const practiceComeBackTitle = 'כדאי לחזור אליהם';
+  static const practiceComeBackWhy = 'נושאים שעוד לא התיישבו. אין לחץ: אפשר לנסות שוב מתי שרוצים.';
+  static const practiceComeBackMark = 'לחזור לזה';
+  static const practiceSteadyMark = 'הולך טוב';
+  static const practiceAnotherWay = 'עדיין לא ברור? להראות בדרך אחרת';
+  static const practiceAnotherWayTitle = 'דרך אחרת';
+  static const practiceComeBack = 'אם זה עדיין לא מסתדר, זה בסדר. אפשר לעבור הלאה ולחזור לזה בפעם אחרת.';
   static String practiceTheAnswer(String answer) => 'התשובה: $answer';
   static const practiceNextQuestion = 'שאלה הבאה';
   static const practiceDone = 'סיימת את התרגול.';

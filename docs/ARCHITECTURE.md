@@ -107,6 +107,8 @@ Decline detection is rule-based code, not an LLM judgement. It reads check-in sc
 | `CheckIn` | Young person's mood entry, with optional private note |
 | `InterviewMessage` | Parent and Profile Agent turns in the onboarding interview |
 | `ProfileItem` | One fact about the child, by section, confirmed by the parent or waiting for them |
+| `ChildLesson` | One lesson for one learner: the world it is set in, and how far they have got |
+| `PracticeRecord` | How one practice question went: the sub-topic, and whether the learner got it without being shown the solution. No question or answer is kept |
 | `WeeklySummary` | Generated summary, the numbers counted from the log, and the prompt version that produced it |
 | `Alert` | Safety monitor output and whether the parent has seen it |
 | `AuditLog` | Who read or changed sensitive data |
