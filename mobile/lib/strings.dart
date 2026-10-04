@@ -1,6 +1,7 @@
 /// User-facing text. Hebrew is the first language; every string the user sees lives here.
 class Strings {
-  static const appTitle = 'ליווי הורים';
+  // A working name. The product name is not decided.
+  static const appTitle = 'ללמוד בדרך שלי';
 
   // General
   static const save = 'שמירה';
@@ -30,12 +31,14 @@ class Strings {
 
   // Consent
   static const consentTitle = 'לפני שמתחילים';
-  static const consentIntro = 'האפליקציה מלווה הורים לילדים ולבני נוער שמתמודדים עם חרדה. חשוב שתדעו:';
+  static const consentIntro =
+      'האפליקציה מלמדת ילדים ובני נוער דרך משחקים, בעולם שהם אוהבים ובקצב שלהם. חשוב שתדעו:';
   static const consentPoints = [
-    'האפליקציה אינה טיפול, אינה מאבחנת ואינה מחליפה איש מקצוע.',
-    'המאמן הוא בינה מלאכותית ולא אדם. התשובות שלו עוברות בדיקת בטיחות, אבל הוא עלול לטעות.',
+    'זו אפליקציית לימוד. היא אינה טיפול, אינה מאבחנת ואינה מחליפה מורה או איש מקצוע.',
+    'את הסיפור שסביב כל שיעור כותבת בינה מלאכותית, והוא עובר בדיקה לפני שהוא מוצג. את החשבון עצמו בודק קוד, לא בינה מלאכותית.',
+    'בפרופיל נשמר רק מה שעוזר להתאים שיעור: מה הילד/ה אוהב/ת, מה קשה בלמידה ומה עוזר. לא אבחנות ולא מידע רפואי.',
     'במצב חירום האפליקציה תפנה אתכם לגורמי עזרה ולא תנסה לטפל בעצמה.',
-    'המידע שתכתבו על הילד/ה רגיש. הוא נשמר מוצפן, אינו נמכר ואינו משותף.',
+    'המידע נשמר מוצפן, אינו נמכר ואינו משותף.',
     'לפני שטקסט נשלח למודל הבינה המלאכותית, שם הילד/ה מוחלף בכינוי.',
     'אפשר לייצא או למחוק את כל המידע בכל רגע דרך התפריט.',
   ];
@@ -55,6 +58,14 @@ class Strings {
   static const tabMap = 'מפה';
   static const tabProfile = 'פרופיל';
   static const tabSummary = 'סיכום';
+  static const tabLessons = 'שיעורים';
+  static const tabHome = 'בית';
+  static const tabTopics = 'נושאים';
+  static const welcomePreparing = 'מכינים את העולם שלך. זה יכול לקחת עד חצי דקה.';
+  static const lessonsIntro = 'כל שיעור הוא משחק קצר. אין ציונים, אין שעון, ואפשר לעצור ולחזור מתי שרוצים.';
+  static const lessonMixerTitle = 'שברים: לערבב את אותו דבר שוב';
+  static const lessonMixerSubtitle = 'בערך עשר דקות';
+  static const lessonStart = 'להתחיל';
   static const menuSignOut = 'יציאה';
   static const menuDelete = 'מחיקת החשבון וכל המידע';
   static const deleteConfirmTitle = 'למחוק הכול?';
@@ -96,7 +107,7 @@ class Strings {
 
   // Profile
   static const profileEmpty =
-      'כאן נשמר מה שהאפליקציה יודעת על הילד/ה. שיחת היכרות קצרה עוזרת למאמן להתאים את עצמו למשפחה שלכם.';
+      'כאן נשמר מה שהאפליקציה יודעת על הילד/ה. שיחת היכרות קצרה עוזרת לבנות שיעורים מהעולם שהילד/ה אוהב/ת.';
   static const profileInterview = 'שיחת היכרות';
   static const profileAdd = 'הוספה לפרופיל';
   static const profileSection = 'נושא';
@@ -108,8 +119,8 @@ class Strings {
   static const profileSections = {
     'StrengthsAndInterests': 'חוזקות ותחומי עניין',
     'AnxietyPicture': 'תמונת החרדה',
-    'WhatCalms': 'מה מרגיע',
-    'LearningPicture': 'למידה',
+    'WhatCalms': 'מה עוזר',
+    'LearningPicture': 'מה קשה בלמידה',
     'OtherConditions': 'אבחנות של איש מקצוע',
     'FamilyContext': 'ההקשר המשפחתי',
     'WhatHasWorked': 'מה עבד',
@@ -143,11 +154,50 @@ class Strings {
   static const lessonRemove = 'להוציא חלק';
   static const lessonMine = 'מה שיצרת';
   static const lessonNow = 'מה שיש עכשיו';
-  static const lessonKeepPouring = 'אפשר למזוג עד שהכלי מלא.';
+  static String lessonNotFull(int missing) => missing == 1
+      ? 'הכלי עוד לא מלא. חסר עוד חלק אחד.'
+      : 'הכלי עוד לא מלא. חסרים עוד $missing חלקים.';
   static const lessonAgain = 'אפשר להתחיל מההתחלה';
-  static String lessonMatch(String result) => 'זה בדיוק $result שיצרת.';
-  static String lessonNotYet(String result) => 'זה עוד לא $result שיצרת. אפשר לשנות.';
-  static const lessonSame = 'זו בדיוק אותה כמות.';
+  static String lessonMatch(String result) => 'שני העיגולים באותו צבע בדיוק. זה $result שיצרת.';
+  static String lessonNotYet(String result) => 'שני העיגולים עוד לא באותו צבע, אז זה עוד לא $result שיצרת. אפשר לשנות.';
+  static const lessonSame = 'זה בדיוק אותו חלק מהשלם, ולכן אותו צבע.';
+  static const lessonNewWorld = 'עולם אחר';
+
+  // Practice by grade and topic. Read by the learner, so every form fits a boy and a girl.
+  static const practiceTitle = 'תרגול לפי כיתה ונושא';
+  static const practiceSubtitle = 'לפי תוכנית הלימודים של משרד החינוך, כיתות ז עד ט';
+  static const practiceOpen = 'לבחור נושא';
+  static const practiceSoon = 'בקרוב';
+  static const practiceDomains = {'algebra': 'אלגברה', 'number': 'מספרים', 'geometry': 'גאומטריה'};
+  static const practiceAnswerHint = 'התשובה';
+  static const practiceCheck = 'בדיקה';
+  static const practiceSame = 'זו התשובה.';
+  static const practiceNotYet = 'זו עוד לא התשובה. אפשר לנסות שוב, או לראות איך פותרים.';
+  static const practiceShowHow = 'להראות לי איך';
+  static String practiceTheAnswer(String answer) => 'התשובה: $answer';
+  static const practiceNextQuestion = 'שאלה הבאה';
+  static const practiceDone = 'סיימת את התרגול.';
+  static const practiceMore = 'עוד שאלות';
+  static String practiceCount(int index, int total) => 'שאלה $index מתוך $total';
+
+  // The explanation of a step. Every number is passed in by code.
+  static const explainOpen = 'להראות לי איך';
+  static const explainMore = 'עוד צעד';
+  static const explainGotIt = 'הבנתי, רוצה לנסות';
+  static const explainMoveOn = 'להמשיך הלאה';
+  static String explainSmall(int total, int partsA, String a, int partsB, String b) =>
+      'בכלי הקטן יש $total חלקים: $partsA $a ו-$partsB $b.';
+  static String explainTimes(int slots, int times, int small) =>
+      'הכלי הגדול הוא $slots חלקים. זה בדיוק $times פעמים הכלי הקטן.';
+  static String explainIngredient(String name, int times, int small, int big) =>
+      'אז גם $name: $times פעמים $small, כלומר $big חלקים.';
+  static String explainResult(int partsA, String a, int partsB, String b) =>
+      '$partsA $a ו-$partsB $b. אותו חלק מהשלם, ולכן אותו צבע בדיוק.';
+  static const lessonRestart = 'מההתחלה';
+  static String lessonsAskInterest(String name) => 'מה $name הכי אוהב/ת?';
+  static const lessonsAskInterestWhy = 'השיעור ייבנה מהעולם הזה: הסיפור, הצבעים ומי שמבקש עזרה.';
+  static const lessonsInterestHint = 'למשל: לק ג\'ל וציפורניים, כדורגל, אפייה';
+  static const lessonsSaveInterest = 'לשמור ולפתוח את השיעור';
   static const lessonLookAtBoth ='הנה שניהם זה ליד זה. אפשר לבחור שוב.';
   static const lessonParts = 'חלקים';
 

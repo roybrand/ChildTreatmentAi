@@ -1,0 +1,323 @@
+{
+  "_about": "The Israeli mathematics curriculum for grades 7 to 9, as a skill map. Topics, their order (rounds), and teaching hours are taken from the Ministry of Education's curriculum document. Sub-topics follow the document's own sub-headings where it has them; where a heading covers several skills we split it and named the parts ourselves, so a sub-topic title is not always the Ministry's wording. 'generator' names the code that makes questions for a sub-topic; null means no questions are built yet. English titles are our translation.",
+  "subject": "mathematics",
+  "country": "IL",
+  "source": {
+    "title": "תוכנית הלימודים במתמטיקה לכיתות ז-ט",
+    "publisher": "משרד החינוך, המזכירות הפדגוגית, הפיקוח על הוראת המתמטיקה",
+    "url": "https://meyda.education.gov.il/files/Curriculum/math_7_9.pdf",
+    "read_on": "2026-10-04"
+  },
+  "grades": [
+    {
+      "grade": 7,
+      "name": "כיתה ז",
+      "hours": 150,
+      "topics": [
+        {
+          "id": "g7-expressions", "domain": "algebra", "round": 1, "hours": 15,
+          "title": "משתנים, ביטויים אלגבריים והכללה של תופעות מספריות",
+          "title_en": "Variables, algebraic expressions, and generalising number patterns",
+          "subtopics": [
+            { "id": "g7-expressions-variables", "title": "משתנים וביטויים אלגבריים", "title_en": "Variables and algebraic expressions", "generator": "sequence-term" },
+            { "id": "g7-expressions-substitute", "title": "הצבת מספרים בביטויים אלגבריים וחישוב ערכם", "title_en": "Substituting numbers into expressions", "generator": "substitute" },
+            { "id": "g7-expressions-like-terms", "title": "שוויון בין ביטויים אלגבריים, כינוס איברים דומים", "title_en": "Equal expressions, collecting like terms", "generator": "like-terms" }
+          ]
+        },
+        {
+          "id": "g7-arithmetic", "domain": "number", "round": 1, "hours": 10,
+          "title": "פעולות החשבון וחוקיהן, חזקות ושורשים ריבועיים",
+          "title_en": "Arithmetic operations and their laws, powers and square roots",
+          "subtopics": [
+            { "id": "g7-arithmetic-laws", "title": "חוקי החילוף, הקיבוץ והפילוג, סדר פעולות החשבון", "title_en": "Commutative, associative, distributive laws; order of operations", "generator": "order-of-operations" },
+            { "id": "g7-arithmetic-powers", "title": "חזקות עם מעריך טבעי", "title_en": "Powers with a natural exponent", "generator": "power" },
+            { "id": "g7-arithmetic-roots", "title": "שורשים ריבועיים", "title_en": "Square roots", "generator": "square-root" }
+          ]
+        },
+        {
+          "id": "g7-rectangle-box", "domain": "geometry", "round": 1, "hours": 15,
+          "title": "מלבן, תיבה",
+          "title_en": "Rectangle and box",
+          "subtopics": [
+            { "id": "g7-rectangle-perimeter-area", "title": "היקף ושטח מלבן", "title_en": "Perimeter and area of a rectangle", "generator": "rectangle-area" },
+            { "id": "g7-box-volume", "title": "תיבה: נפח", "title_en": "Box: volume", "generator": "box-volume" },
+            { "id": "g7-box-surface", "title": "תיבה: שטח פנים ופריסה", "title_en": "Box: surface area and net", "generator": "box-surface" }
+          ]
+        },
+        {
+          "id": "g7-equations", "domain": "algebra", "round": 2, "hours": 15,
+          "title": "פתרון משוואות ושאלות מילוליות",
+          "title_en": "Solving equations and word problems",
+          "subtopics": [
+            { "id": "g7-equations-solve", "title": "פתרון משוואות ממעלה ראשונה בנעלם אחד", "title_en": "Solving first-degree equations in one unknown", "generator": "linear-equation" },
+            { "id": "g7-equations-word", "title": "שאלות מילוליות שניתנות לפתרון באמצעות משוואות", "title_en": "Word problems solved with equations", "generator": null }
+          ]
+        },
+        {
+          "id": "g7-signed", "domain": "number", "round": 2, "hours": 20,
+          "title": "מספרים שליליים, חיוביים ואפס",
+          "title_en": "Negative and positive numbers, and zero",
+          "subtopics": [
+            { "id": "g7-signed-line", "title": "מספרים שליליים על ציר המספרים, סדר, מספרים נגדיים", "title_en": "Negative numbers on the number line, order, opposites", "generator": null },
+            { "id": "g7-signed-add", "title": "חיבור וחיסור במספרים מכוונים", "title_en": "Adding and subtracting signed numbers", "generator": "signed-add" },
+            { "id": "g7-signed-multiply", "title": "כפל וחילוק במספרים מכוונים", "title_en": "Multiplying and dividing signed numbers", "generator": "signed-multiply" },
+            { "id": "g7-signed-axes", "title": "מערכת צירים, סימון נקודות וקריאת נקודות", "title_en": "The coordinate system: plotting and reading points", "generator": null }
+          ]
+        },
+        {
+          "id": "g7-areas", "domain": "geometry", "round": 2, "hours": 12,
+          "title": "שטחים",
+          "title_en": "Areas",
+          "subtopics": [
+            { "id": "g7-areas-triangle", "title": "שטח משולש", "title_en": "Area of a triangle", "generator": "triangle-area" },
+            { "id": "g7-areas-quadrilaterals", "title": "שטח מקבילית וטרפז", "title_en": "Area of a parallelogram and a trapezoid", "generator": null },
+            { "id": "g7-areas-circle", "title": "היקף מעגל ושטח עיגול", "title_en": "Circumference and area of a circle", "generator": null }
+          ]
+        },
+        {
+          "id": "g7-angles", "domain": "geometry", "round": 2, "hours": 15,
+          "title": "זוויות",
+          "title_en": "Angles",
+          "subtopics": [
+            { "id": "g7-angles-compare", "title": "זווית, זוויות שוות והשוואת זוויות", "title_en": "Angles, equal angles, comparing angles", "generator": null },
+            { "id": "g7-angles-adjacent", "title": "זוויות צמודות וזוויות קודקודיות", "title_en": "Adjacent and vertical angles", "generator": "adjacent-angle" },
+            { "id": "g7-angles-parallel", "title": "זוויות מתאימות ומתחלפות בין ישרים מקבילים", "title_en": "Corresponding and alternate angles between parallel lines", "generator": null }
+          ]
+        },
+        {
+          "id": "g7-functions", "domain": "algebra", "round": 3, "hours": 18,
+          "title": "מבוא לפונקציות",
+          "title_en": "Introduction to functions",
+          "subtopics": [
+            { "id": "g7-functions-graphs", "title": "גרפים שימושיים: קריאה ושרטוט", "title_en": "Everyday graphs: reading and drawing", "generator": null },
+            { "id": "g7-functions-representations", "title": "ייצוגים שונים של פונקציה: מילולי, טבלה, גרף, ביטוי אלגברי", "title_en": "Representations of a function: words, table, graph, expression", "generator": "function-value" },
+            { "id": "g7-functions-change", "title": "עלייה וירידה, השתנות בקצב אחיד ולא אחיד", "title_en": "Increase and decrease; constant and changing rates", "generator": null }
+          ]
+        },
+        {
+          "id": "g7-equations-2", "domain": "algebra", "round": 3, "hours": 20,
+          "title": "משוואות ושאלות מילוליות",
+          "title_en": "Equations and word problems",
+          "subtopics": [
+            { "id": "g7-equations-both-sides", "title": "משוואות עם נעלם בשני האגפים", "title_en": "Equations with the unknown on both sides", "generator": "linear-equation-both-sides" },
+            { "id": "g7-equations-word-linear", "title": "שאלות מילוליות בשילוב משוואות קוויות", "title_en": "Word problems with linear equations", "generator": null }
+          ]
+        },
+        {
+          "id": "g7-triangle-prism", "domain": "geometry", "round": 3, "hours": 10,
+          "title": "משולש ומנסרה משולשת",
+          "title_en": "Triangle and triangular prism",
+          "subtopics": [
+            { "id": "g7-triangle-angle-sum", "title": "סכום זוויות במשולש, במרובע ובמצולעים", "title_en": "Sum of the angles in a triangle, a quadrilateral, and polygons", "generator": "triangle-angle" },
+            { "id": "g7-prism", "title": "מנסרה משולשת ישרה: שטח פנים, נפח, פריסה", "title_en": "Right triangular prism: surface area, volume, net", "generator": null }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 8,
+      "name": "כיתה ח",
+      "hours": 150,
+      "topics": [
+        {
+          "id": "g8-linear-function", "domain": "algebra", "round": 1, "hours": 20,
+          "title": "פונקציה קווית, אי-שוויון",
+          "title_en": "Linear function, inequality",
+          "subtopics": [
+            { "id": "g8-linear-value", "title": "הפונקציה הקווית וייצוגיה", "title_en": "The linear function and its representations", "generator": "linear-value" },
+            { "id": "g8-linear-slope", "title": "קצב השתנות אחיד, שיפוע", "title_en": "Constant rate of change, slope", "generator": "slope" },
+            { "id": "g8-linear-phenomena", "title": "ייצוג תופעות באמצעות פונקציות קוויות", "title_en": "Describing situations with linear functions", "generator": null },
+            { "id": "g8-inequality", "title": "אי-שוויון ממעלה ראשונה", "title_en": "First-degree inequality", "generator": null }
+          ]
+        },
+        {
+          "id": "g8-ratio", "domain": "number", "round": 1, "hours": 20,
+          "title": "יחס, פרופורציה וקנה מידה (כולל שימושים אלגבריים)",
+          "title_en": "Ratio, proportion, and scale (with algebraic uses)",
+          "subtopics": [
+            { "id": "g8-ratio-share", "title": "יחס וחלוקה לפי יחס נתון", "title_en": "Ratio, and sharing in a given ratio", "generator": "ratio-share" },
+            { "id": "g8-proportion", "title": "פרופורציה", "title_en": "Proportion", "generator": "proportion" },
+            { "id": "g8-scale", "title": "קנה מידה", "title_en": "Scale", "generator": "scale" }
+          ]
+        },
+        {
+          "id": "g8-congruent", "domain": "geometry", "round": 1, "hours": 14,
+          "title": "משולשים חופפים, תיכון ומשולש שווה שוקיים (קדם דדוקטיבי)",
+          "title_en": "Congruent triangles, the median, and the isosceles triangle (pre-deductive)",
+          "subtopics": [
+            { "id": "g8-congruent-triangles", "title": "משולשים חופפים ומשפטי החפיפה", "title_en": "Congruent triangles and the congruence theorems", "generator": null },
+            { "id": "g8-isosceles", "title": "תיכון ומשולש שווה שוקיים", "title_en": "The median, and the isosceles triangle", "generator": "isosceles-angle" }
+          ]
+        },
+        {
+          "id": "g8-equations", "domain": "algebra", "round": 2, "hours": 20,
+          "title": "פתרון משוואות ממעלה ראשונה (העמקה), שאלות מילוליות מתאימות וטכניקה אלגברית",
+          "title_en": "First-degree equations (in depth), word problems, and algebraic technique",
+          "subtopics": [
+            { "id": "g8-equations-brackets", "title": "פתרון משוואות ממעלה ראשונה (העמקה)", "title_en": "Solving first-degree equations, in depth", "generator": "linear-equation-brackets" },
+            { "id": "g8-equations-word", "title": "שאלות מילוליות מתאימות", "title_en": "Matching word problems", "generator": null },
+            { "id": "g8-technique", "title": "טכניקה אלגברית: פתיחת סוגריים וכינוס", "title_en": "Algebraic technique: expanding brackets and collecting terms", "generator": "expand-brackets" }
+          ]
+        },
+        {
+          "id": "g8-percent-stats", "domain": "number", "round": 2, "hours": 30,
+          "title": "אחוזים, סטטיסטיקה והסתברות (כולל שימושים אלגבריים)",
+          "title_en": "Percentages, statistics, and probability (with algebraic uses)",
+          "subtopics": [
+            { "id": "g8-percent-of", "title": "אחוזים: חישוב חלק מכמות", "title_en": "Percentages: a part of an amount", "generator": "percent-of" },
+            { "id": "g8-percent-change", "title": "אחוזים: התייקרות והוזלה", "title_en": "Percentages: price rises and discounts", "generator": "percent-change" },
+            { "id": "g8-stats-data", "title": "איסוף נתונים וארגונם בדרכי ייצוג שונות", "title_en": "Collecting data and organising it in different representations", "generator": null },
+            { "id": "g8-stats-centre", "title": "מדדי מרכז: שכיח, חציון, ממוצע", "title_en": "Measures of centre: mode, median, mean", "generator": "mean" },
+            { "id": "g8-probability", "title": "הסתברות במצבים סימטריים", "title_en": "Probability in symmetric situations", "generator": "simple-probability" }
+          ]
+        },
+        {
+          "id": "g8-similar", "domain": "geometry", "round": 2, "hours": 12,
+          "title": "דמיון משולשים, דמיון מצולעים",
+          "title_en": "Similar triangles and similar polygons",
+          "subtopics": [
+            { "id": "g8-similar-side", "title": "משולשים דומים ומצולעים דומים", "title_en": "Similar triangles and similar polygons", "generator": "similar-side" }
+          ]
+        },
+        {
+          "id": "g8-systems", "domain": "algebra", "round": 3, "hours": 18,
+          "title": "מערכת משוואות של שתי משוואות מהמעלה הראשונה, ערך מוחלט ואי-שוויונות (העמקה)",
+          "title_en": "Systems of two first-degree equations; absolute value and inequalities (in depth)",
+          "subtopics": [
+            { "id": "g8-systems-solve", "title": "מערכת של שתי משוואות מהמעלה הראשונה", "title_en": "A system of two first-degree equations", "generator": "system" },
+            { "id": "g8-systems-word", "title": "שאלות מילוליות מתאימות", "title_en": "Matching word problems", "generator": null },
+            { "id": "g8-absolute", "title": "ערך מוחלט ואי-שוויונות (העמקה)", "title_en": "Absolute value and inequalities, in depth", "generator": "absolute-value" }
+          ]
+        },
+        {
+          "id": "g8-irrational", "domain": "number", "round": 3, "hours": 4,
+          "title": "שורש ריבועי ומספר אי-רציונאלי",
+          "title_en": "Square root and irrational numbers",
+          "subtopics": [
+            { "id": "g8-irrational-root", "title": "שורש ריבועי ומספר אי-רציונאלי", "title_en": "Square root and irrational numbers", "generator": null }
+          ]
+        },
+        {
+          "id": "g8-pythagoras", "domain": "geometry", "round": 3, "hours": 12,
+          "title": "משפט פיתגורס במישור ובמרחב, גליל",
+          "title_en": "The Pythagorean theorem in the plane and in space; the cylinder",
+          "subtopics": [
+            { "id": "g8-pythagoras-plane", "title": "משפט פיתגורס במישור ובמרחב", "title_en": "The Pythagorean theorem in the plane and in space", "generator": "pythagoras" },
+            { "id": "g8-cylinder", "title": "גליל ישר: שטח פנים, שטח מעטפת, נפח, פריסה", "title_en": "Right cylinder: surface area, lateral area, volume, net", "generator": null }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 9,
+      "name": "כיתה ט",
+      "hours": 150,
+      "topics": [
+        {
+          "id": "g9-powers", "domain": "algebra", "round": 1, "hours": 20,
+          "title": "חזקות ושורשים",
+          "title_en": "Powers and roots",
+          "subtopics": [
+            { "id": "g9-powers-natural", "title": "חזקות עם מעריך טבעי וחוקי חזקות", "title_en": "Powers with a natural exponent, and the laws of powers", "generator": "power-rule" },
+            { "id": "g9-powers-negative", "title": "מעריכים שהם אפס או מספרים שליליים שלמים", "title_en": "Zero and negative integer exponents", "generator": "negative-exponent" },
+            { "id": "g9-powers-roots", "title": "שורשים ריבועיים", "title_en": "Square roots", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-probability", "domain": "algebra", "round": 1, "hours": 15,
+          "title": "הסתברות",
+          "title_en": "Probability",
+          "subtopics": [
+            { "id": "g9-probability-two-events", "title": "הסתברות של שני מאורעות, אי-תלות", "title_en": "Probability of two events; independence", "generator": "two-events" },
+            { "id": "g9-probability-conditional", "title": "הסתברות מותנית", "title_en": "Conditional probability", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-technique", "domain": "algebra", "round": 1, "hours": 20,
+          "title": "טכניקה אלגברית",
+          "title_en": "Algebraic technique",
+          "subtopics": [
+            { "id": "g9-technique-product", "title": "נוסחאות הכפל (מכפלת דו-איבר בדו-איבר)", "title_en": "Multiplication formulas (binomial times binomial)", "generator": "square-of-sum" },
+            { "id": "g9-technique-factor", "title": "פירוק לגורמים", "title_en": "Factoring", "generator": null },
+            { "id": "g9-technique-fractions", "title": "שברים אלגבריים", "title_en": "Algebraic fractions", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-quadratic", "domain": "algebra", "round": 1, "hours": 30,
+          "title": "פונקציות ריבועיות",
+          "title_en": "Quadratic functions",
+          "subtopics": [
+            { "id": "g9-quadratic-representations", "title": "הפונקציה הריבועית וייצוגיה האלגבריים", "title_en": "The quadratic function and its algebraic forms", "generator": "parabola-vertex" },
+            { "id": "g9-quadratic-equations", "title": "פתרון משוואות ריבועיות ושאלות מילוליות", "title_en": "Solving quadratic equations, and word problems", "generator": "quadratic-root" },
+            { "id": "g9-quadratic-inequalities", "title": "אי-שוויונות ריבועיים", "title_en": "Quadratic inequalities", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-uses", "domain": "algebra", "round": 1, "hours": 5,
+          "title": "שימושים באלגברה",
+          "title_en": "Uses of algebra",
+          "subtopics": [
+            { "id": "g9-uses-proof", "title": "אלגברה כאמצעי להסבר ולהוכחה", "title_en": "Algebra as a tool for explaining and proving", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-kite-isosceles", "domain": "geometry", "round": 1, "hours": 10,
+          "title": "דלתון ומשולש שווה שוקיים",
+          "title_en": "The kite and the isosceles triangle",
+          "subtopics": [
+            { "id": "g9-kite-isosceles-proofs", "title": "תכונות והוכחות", "title_en": "Properties and proofs", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-constructions", "domain": "geometry", "round": 1, "hours": 12,
+          "title": "בניות בסיסיות",
+          "title_en": "Basic constructions",
+          "subtopics": [
+            { "id": "g9-constructions-basic", "title": "בניות בסרגל ובמחוגה", "title_en": "Constructions with ruler and compass", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-parallel-trapezoid", "domain": "geometry", "round": 1, "hours": 8,
+          "title": "ישרים מקבילים וטרפז",
+          "title_en": "Parallel lines and the trapezoid",
+          "subtopics": [
+            { "id": "g9-parallel-trapezoid-proofs", "title": "תכונות והוכחות", "title_en": "Properties and proofs", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-parallelogram", "domain": "geometry", "round": 1, "hours": 10,
+          "title": "מקבילית ותכנים נוספים שאפשר להוכיח באמצעות תכונותיה",
+          "title_en": "The parallelogram, and what can be proved from its properties",
+          "subtopics": [
+            { "id": "g9-parallelogram-angle", "title": "תכונות המקבילית", "title_en": "Properties of the parallelogram", "generator": "parallelogram-angle" },
+            { "id": "g9-midsegment", "title": "קטע אמצעים במשולש ובטרפז", "title_en": "The midsegment of a triangle and of a trapezoid", "generator": "midsegment" }
+          ]
+        },
+        {
+          "id": "g9-rectangle", "domain": "geometry", "round": 1, "hours": 8,
+          "title": "מלבן ותכנים נוספים שאפשר להוכיח באמצעות תכונותיו",
+          "title_en": "The rectangle, and what can be proved from its properties",
+          "subtopics": [
+            { "id": "g9-rectangle-proofs", "title": "תכונות המלבן, התיכון ליתר במשולש ישר זווית", "title_en": "Properties of the rectangle; the median to the hypotenuse", "generator": "median-to-hypotenuse" }
+          ]
+        },
+        {
+          "id": "g9-contradiction", "domain": "geometry", "round": 1, "hours": 4,
+          "title": "הוכחה על דרך השלילה",
+          "title_en": "Proof by contradiction",
+          "subtopics": [
+            { "id": "g9-contradiction-proofs", "title": "הוכחה על דרך השלילה", "title_en": "Proof by contradiction", "generator": null }
+          ]
+        },
+        {
+          "id": "g9-rhombus-square", "domain": "geometry", "round": 1, "hours": 8,
+          "title": "מעוין וריבוע",
+          "title_en": "The rhombus and the square",
+          "subtopics": [
+            { "id": "g9-rhombus-square-proofs", "title": "תכונות המעוין והריבוע", "title_en": "Properties of the rhombus and the square", "generator": null }
+          ]
+        }
+      ]
+    }
+  ]
+}

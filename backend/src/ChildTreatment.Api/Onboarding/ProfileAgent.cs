@@ -14,6 +14,10 @@ public sealed record InterviewContext
     public required int Age { get; init; }
     /// <summary>Everything already in the profile, rejected items included, so nothing is proposed twice.</summary>
     public IReadOnlyList<ProfileNote> Items { get; init; } = [];
+    /// <summary>Which interview to hold: the learner's profile for the tutor, or the family coaching one.</summary>
+    public string Prompt { get; init; } = ProfileAgent.LearnerProfile;
+    /// <summary>Sections the agent may write to. An item for any other section is dropped by code.</summary>
+    public IReadOnlySet<ProfileSection> Sections { get; init; } = new FeatureOptions().ProfileSections;
 }
 
 public enum InterviewOutcomeKind { Reply, Crisis, Fallback }
@@ -42,7 +46,10 @@ public sealed class ProfileAgent(
     SafetyReviewer reviewer,
     ILogger<ProfileAgent> logger)
 {
+    /// <summary>The interview for the family coaching module: it also asks about anxiety and reported diagnoses.</summary>
     public const string AgentName = "profile-agent";
+    /// <summary>The interview for the tutor: what the learner loves, what is hard in learning, what helps.</summary>
+    public const string LearnerProfile = "learner-profile";
 
     public const int MaxItemsPerTurn = 6;
     public const int MaxItemLength = 300;
@@ -80,7 +87,7 @@ public sealed class ProfileAgent(
         string parentMessage,
         CancellationToken ct = default)
     {
-        var prompt = prompts.Get(AgentName);
+        var prompt = prompts.Get(context.Prompt);
 
         // Layer one: rules in code, before the model sees anything. Nothing from this message is written down.
         if (crisisRules.Check(parentMessage) is { } hit)
@@ -105,7 +112,7 @@ public sealed class ProfileAgent(
             if (result.Refused || string.IsNullOrWhiteSpace(result.Text))
                 return Fallback(prompt, "The model declined or returned nothing.");
 
-            if (Parse(result.Text) is not { } turn)
+            if (Parse(result.Text, context.Sections) is not { } turn)
                 return Fallback(prompt, "The model's output could not be read.");
 
             // Layer two: the reviewer sees the question and the notes, since both are shown to the parent.
@@ -124,7 +131,7 @@ public sealed class ProfileAgent(
     private static InterviewOutcome Fallback(Prompt prompt, string reason) =>
         new(InterviewOutcomeKind.Fallback, SafetyTexts.Fallback, prompt.Version, [], BlockReason: reason);
 
-    private (string Reply, List<ProposedItem> Items, bool Complete)? Parse(string json)
+    private (string Reply, List<ProposedItem> Items, bool Complete)? Parse(string json, IReadOnlySet<ProfileSection> sections)
     {
         try
         {
@@ -140,7 +147,7 @@ public sealed class ProfileAgent(
                 var text = item.GetProperty("text").GetString()?.Trim();
                 // Anything outside the known sections or the size limits is dropped, not stored.
                 if (!Enum.TryParse<ProfileSection>(item.GetProperty("section").GetString(), out var section) ||
-                    !Enum.IsDefined(section) ||
+                    !sections.Contains(section) ||
                     string.IsNullOrEmpty(text) || text.Length > MaxItemLength)
                     continue;
                 if (items.Count < MaxItemsPerTurn)

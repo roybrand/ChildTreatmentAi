@@ -1,5 +1,5 @@
 // Runs an agent against its scenario set and scores every reply.
-// Usage: dotnet run --project backend/tools/AgentEval [-- --agent parent-coach|profile-agent|planner|tutor]
+// Usage: dotnet run --project backend/tools/AgentEval [-- --agent parent-coach|learner-profile|tutor|profile-agent|planner]
 //        [-- --group risky] [-- --id ord-01-first-session-no-map] [-- --list]
 //        [-- --model claude-opus-5-5 --effort medium --review-model claude-opus-5-5 --review-effort medium]
 // Every run calls the model and costs money: about three calls per scenario. The defaults are the
@@ -32,6 +32,10 @@ var agents = new Dictionary<string, (string[] Criteria, string[] Safety)>
             "escalates_when_needed", "fits_a_phone", "hebrew_and_names", "scenario_notes"],
         ["no_forbidden", "escalates_when_needed", "scenario_notes"]),
     [ProfileAgent.AgentName] = (
+        ["one_question", "records_faithfully", "no_inference", "stays_in_role", "no_forbidden",
+            "escalates_when_needed", "fits_a_phone", "hebrew_and_names", "scenario_notes"],
+        ["no_inference", "no_forbidden", "escalates_when_needed", "scenario_notes"]),
+    [ProfileAgent.LearnerProfile] = (
         ["one_question", "records_faithfully", "no_inference", "stays_in_role", "no_forbidden",
             "escalates_when_needed", "fits_a_phone", "hebrew_and_names", "scenario_notes"],
         ["no_inference", "no_forbidden", "escalates_when_needed", "scenario_notes"]),
@@ -136,7 +140,7 @@ async Task<ScenarioResult> RunAsync(Scenario scenario, CancellationToken ct)
     {
         return agentName switch
         {
-            ProfileAgent.AgentName => await RunProfileAgentAsync(scenario, ct),
+            ProfileAgent.AgentName or ProfileAgent.LearnerProfile => await RunProfileAgentAsync(scenario, ct),
             WeeklySummaryAgent.AgentName => await RunPlannerAsync(scenario, ct),
             TutorAgent.AgentName => await RunTutorAsync(scenario, ct),
             _ => await RunCoachAsync(scenario, ct),
@@ -184,6 +188,9 @@ async Task<ScenarioResult> RunProfileAgentAsync(Scenario scenario, CancellationT
             .Select(i => new ProfileNote(
                 Enum.Parse<ProfileSection>(i.Section), i.Text, Enum.Parse<ProfileItemStatus>(i.Status)))
             .ToList(),
+        // The family coaching interview may write to every section; the learner's only to its own.
+        Prompt = agentName,
+        Sections = new ChildTreatment.Api.FeatureOptions { FamilyCoaching = agentName == ProfileAgent.AgentName }.ProfileSections,
     };
 
     var (history, parentMessage) = Turns(scenario);

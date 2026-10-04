@@ -12,6 +12,7 @@ public sealed record InterviewResponse(string Opening, bool Complete, IEnumerabl
 public sealed record SendInterviewMessageRequest(string Text);
 public sealed record UpdateProfileItemRequest(ProfileItemStatus Status, string? Text);
 public sealed record LessonProgressRequest(int Step, bool Completed);
+public sealed record PracticeAnswer(string? QuestionId, string? Answer);
 
 /// <summary>The Profile Agent's interview and the Planner's weekly summary.</summary>
 public static class AgentEndpoints
@@ -20,7 +21,26 @@ public static class AgentEndpoints
 
     public static void MapAgentEndpoints(this IEndpointRouteBuilder app)
     {
+        // The skill map and practice questions. No model is involved: questions and checks are code.
+        var learning = app.MapGroup("/api").RequireAuthorization().RequireFamily();
+
+        learning.MapGet("/curriculum", (Curriculum curriculum) => curriculum.File);
+
+        learning.MapGet("/practice/{subtopicId}", (string subtopicId, int? count, Curriculum curriculum) =>
+        {
+            var questions = curriculum.Questions(subtopicId, Math.Clamp(count ?? 5, 1, 10), Random.Shared);
+            return questions is null ? Results.NotFound() : Results.Ok(questions);
+        });
+
+        learning.MapPost("/practice/check", (PracticeAnswer answer, Curriculum curriculum) =>
+        {
+            var check = curriculum.Check(answer.QuestionId ?? "", answer.Answer);
+            return check is null ? Results.NotFound() : Results.Ok(check);
+        });
+
         var child = app.MapGroup("/api/children/{childId:guid}").RequireAuthorization().RequireFamily();
+
+        var coaching = child.MapGroup("").RequireFamilyCoaching();
 
         child.MapGet("/profile/interview", async (Guid childId, AppDbContext db) =>
         {
@@ -71,6 +91,18 @@ public static class AgentEndpoints
             return Results.Ok(new ProfileItemResponse(item.Id, item.Section, item.Text, item.Status));
         });
 
+        // Practice questions told as stories from the learner's world, where a question has a story.
+        child.MapGet("/practice/{subtopicId}", async (
+            Guid childId, string subtopicId, int? count, Curriculum curriculum, LessonService lessons, CancellationToken ct) =>
+        {
+            var world = await lessons.WorldAsync(childId, ct);
+            if (world is null)
+                return Results.NotFound();
+            var questions = curriculum.Questions(
+                subtopicId, Math.Clamp(count ?? 5, 1, 10), Random.Shared, new Story(world.World, world.Items));
+            return questions is null ? Results.NotFound() : Results.Ok(questions);
+        });
+
         // Opening a lesson for the first time asks the Tutor to set it in the child's world.
         child.MapGet("/lessons/{lessonId}", async (
             Guid childId, string lessonId, bool? newWorld, LessonService lessons, CancellationToken ct) =>
@@ -88,10 +120,10 @@ public static class AgentEndpoints
             return lesson is null ? Results.NotFound() : Results.Ok(lesson);
         });
 
-        child.MapGet("/summaries", async (Guid childId, WeeklySummaryService summaries, CancellationToken ct) =>
+        coaching.MapGet("/summaries", async (Guid childId, WeeklySummaryService summaries, CancellationToken ct) =>
             await summaries.ListAsync(childId, ct));
 
-        child.MapPost("/summaries", async (Guid childId, WeeklySummaryService summaries, CancellationToken ct) =>
+        coaching.MapPost("/summaries", async (Guid childId, WeeklySummaryService summaries, CancellationToken ct) =>
         {
             var result = await summaries.CreateAsync(childId, ct);
             return result is null ? Results.NotFound() : Results.Ok(result);

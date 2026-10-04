@@ -37,6 +37,20 @@ ASP.NET Core API
 PostgreSQL
 ```
 
+## Features
+
+The `Features:FamilyCoaching` setting decides whether the parent coaching module exists. It is off by default. When off, its routes answer "not found", the app shows the lessons and the profile only, and the profile uses the learner's sections alone: what they love, what is hard in learning, what helps, and what has worked. The app reads `/api/features` at start and shows only what is switched on.
+
+## Skill map
+
+`curriculum/math-il.json` holds the Israeli mathematics curriculum for grades 7 to 9: grade, topic (with domain, order, and teaching hours), and sub-topic. It ships with the API, as the prompts do. Its source is the Ministry of Education's curriculum document, named in the file.
+
+Each sub-topic names a question generator in `QuestionBank`, or none. A generator is code that makes one question from a random seed: the question text, the exact answer as a fraction, and the steps of the solution. A question's id is its sub-topic and its seed, so an answer is checked by rebuilding the question, and nothing about a question is stored. Tests check that the hours in the file match the Ministry's totals, that every generator named exists, and that every generator's questions are solved by their own answers.
+
+The API serves the map at `/api/curriculum`, a set of questions at `/api/practice/{subtopic}`, and checks an answer at `/api/practice/check`.
+
+Still to come, so that one record drives everything about a skill: prerequisites between sub-topics, a record of what each learner has mastered, and the Mixer lesson tied to its sub-topic. The lesson's arithmetic still lives in the app.
+
 ## Agents
 
 The LLM plays five roles, each with its own prompt, data access, and limits: Parent Coach, Skills Guide, Tutor, Profile Agent, and Planner. They are defined in [AGENTS.md](AGENTS.md). Server code decides which agent runs and when. Agents exchange information only through three stores in the database: the profile, the plan, and the event log.

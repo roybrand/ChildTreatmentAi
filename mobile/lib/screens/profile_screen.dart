@@ -10,10 +10,13 @@ import '../widgets/responsive.dart';
 
 /// What the app knows about the child. The parent adds, accepts, and removes items here.
 class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key, required this.api, required this.child});
+  const ProfileScreen({super.key, required this.api, required this.child, this.sections = profileSections});
 
   final ApiClient api;
   final Child child;
+
+  /// The profile sections in use. The tutor leaves out the ones about anxiety, diagnoses, and the family.
+  final List<String> sections;
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
@@ -55,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _add() async {
-    final added = await showDialog<(String, String)>(context: context, builder: (_) => const _AddItemDialog());
+    final added = await showDialog<(String, String)>(context: context, builder: (_) => _AddItemDialog(widget.sections));
     if (added == null) {
       return;
     }
@@ -103,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final theme = Theme.of(context);
     final sections = [
       for (final section in profileSections)
-        if (_items.any((i) => i.section == section)) section,
+        if (widget.sections.contains(section) && _items.any((i) => i.section == section)) section,
     ];
 
     return Scaffold(
@@ -192,7 +195,9 @@ class PendingItemCard extends StatelessWidget {
 }
 
 class _AddItemDialog extends StatefulWidget {
-  const _AddItemDialog();
+  const _AddItemDialog(this.sections);
+
+  final List<String> sections;
 
   @override
   State<_AddItemDialog> createState() => _AddItemDialogState();
@@ -200,7 +205,7 @@ class _AddItemDialog extends StatefulWidget {
 
 class _AddItemDialogState extends State<_AddItemDialog> {
   final _text = TextEditingController();
-  String _section = profileSections.first;
+  late String _section = widget.sections.first;
 
   @override
   void dispose() {
@@ -219,7 +224,7 @@ class _AddItemDialogState extends State<_AddItemDialog> {
             initialValue: _section,
             decoration: const InputDecoration(labelText: Strings.profileSection, border: OutlineInputBorder()),
             items: [
-              for (final section in profileSections)
+              for (final section in widget.sections)
                 DropdownMenuItem(value: section, child: Text(Strings.profileSections[section] ?? section)),
             ],
             onChanged: (value) => setState(() => _section = value ?? _section),

@@ -35,7 +35,13 @@ public sealed class LessonService(
             return null;
 
         var lesson = await db.ChildLessons.FirstOrDefaultAsync(l => l.ChildId == childId && l.LessonId == lessonId, ct);
-        if (lesson is not null && !newWorld)
+        // A lesson that opened in the built-in world before the Tutor was ever asked, because the profile
+        // had no interests yet, gets its own world once there is something to build one from.
+        var neverAsked = lesson is { FromTutor: false, PromptVersion: null } && await HasInterestsAsync(childId, ct);
+        // A world written before the welcome page and the story questions existed lacks what they need,
+        // so it is written once more.
+        var incomplete = lesson is { FromTutor: true } && !lesson.World.Contains("\"items\"", StringComparison.Ordinal);
+        if (lesson is not null && !newWorld && !neverAsked && !incomplete)
             return ToView(lesson);
 
         var now = time.GetUtcNow();
@@ -49,9 +55,29 @@ public sealed class LessonService(
         lesson.World = JsonSerializer.Serialize(world, Json);
         lesson.FromTutor = fromTutor;
         lesson.PromptVersion = promptVersion;
+        // A new world is a new story, so the lesson starts from its first step.
+        lesson.StepReached = 0;
+        lesson.CompletedAt = null;
         await db.SaveChangesAsync(ct);
         return ToView(lesson);
     }
+
+    /// <summary>
+    /// The world the learner's lessons are set in, for the welcome page and for practice questions.
+    /// It never calls the model: before a lesson has been opened it is the built-in world.
+    /// </summary>
+    /// <returns>Null when the child does not exist in the current family.</returns>
+    public async Task<LessonWorld?> WorldAsync(Guid childId, CancellationToken ct = default)
+    {
+        if (!await db.Children.AnyAsync(c => c.Id == childId, ct))
+            return null;
+        var lesson = await db.ChildLessons.FirstOrDefaultAsync(l => l.ChildId == childId && l.LessonId == FractionsMixer, ct);
+        return lesson is null ? LessonWorld.Default : ToView(lesson).World;
+    }
+
+    private Task<bool> HasInterestsAsync(Guid childId, CancellationToken ct) =>
+        db.ProfileItems.AnyAsync(i => i.ChildId == childId && i.Status == ProfileItemStatus.Confirmed &&
+                                      i.Section == ProfileSection.StrengthsAndInterests, ct);
 
     /// <returns>Null when the lesson has not been opened for this child.</returns>
     public async Task<LessonView?> SaveProgressAsync(
@@ -61,8 +87,8 @@ public sealed class LessonService(
         if (lesson is null)
             return null;
 
-        // Progress only moves forward: going back to look at a step again does not undo it.
-        lesson.StepReached = Math.Max(lesson.StepReached, step);
+        // The step is where the learner is now, so the lesson resumes there, also after going back or starting again.
+        lesson.StepReached = step;
         if (completed)
             lesson.CompletedAt ??= time.GetUtcNow();
         await db.SaveChangesAsync(ct);
@@ -123,7 +149,8 @@ public sealed class LessonService(
 
     private static LessonView ToView(ChildLesson lesson) => new(
         lesson.LessonId,
-        JsonSerializer.Deserialize<LessonWorld>(lesson.World, Json)!,
+        // The built-in world is read from code, so an improvement to it reaches lessons already opened.
+        lesson.FromTutor ? JsonSerializer.Deserialize<LessonWorld>(lesson.World, Json)!.Complete() : LessonWorld.Default,
         lesson.FromTutor,
         lesson.StepReached,
         lesson.CompletedAt is not null);

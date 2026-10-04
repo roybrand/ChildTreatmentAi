@@ -1,6 +1,8 @@
 # ChildTreatmentAi
 
-An app that helps families of children and teens with anxiety. A coaching agent guides the parent using parent-led anxiety treatment principles; the child or teen gets a low-risk set of self-help tools.
+A tutor for school-age learners who find school hard. Lessons are games set in the learner's own world and paced to them: hand-built games, code-checked mathematics, and an AI that writes only the story around the game.
+
+The project began as a coaching app for families of children with anxiety. That module is built and switched off (`Features:FamilyCoaching`). See `docs/DECISIONS.md`.
 
 ## Read before working
 
@@ -23,7 +25,7 @@ The `private/` folder holds personal context about the founder and their family.
 docker compose up -d                                  # local PostgreSQL
 dotnet test                                           # tests, no network needed
 dotnet run --project backend/src/ChildTreatment.Api   # the API
-dotnet run --project backend/tools/AgentEval          # score an agent (-- --agent parent-coach|profile-agent|planner); calls the model and costs money
+dotnet run --project backend/tools/AgentEval          # score an agent (-- --agent learner-profile|tutor|parent-coach|profile-agent|planner); calls the model and costs money
 cd mobile && flutter test && flutter run -d chrome    # the app, as the web app in the browser
 ```
 

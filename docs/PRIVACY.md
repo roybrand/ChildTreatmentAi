@@ -1,6 +1,8 @@
 # Privacy
 
-The app holds mental-health information about minors. This is among the most sensitive data a product can hold.
+The app is a tutor and holds information about minors: what a learner loves, what is hard for them in learning, what helps, and their progress in lessons. It is built to hold no health information: no diagnosis, no condition, nothing about anxiety or the family, and no medication. The interview is instructed not to record these, and the profile has no section for them.
+
+The family coaching module, which is switched off, does hold mental-health information about minors, which is among the most sensitive data a product can hold. The sections below that mention logs, coaching sessions, and private notes belong to it.
 
 Status: draft. A lawyer who knows Israeli privacy law must review this before the app is released to any family. Nothing here is legal advice.
 

@@ -2,6 +2,21 @@
 
 Status: the Parent Coach, the Profile Agent's interview, the Planner's weekly summary, and the Safety Guard are built. The Skills Guide and the Tutor are design only. This file defines how many agents there are, what each one does, and how we build and improve them.
 
+## What is switched on
+
+The product is a tutor. See [DECISIONS.md](DECISIONS.md).
+
+| Agent | State |
+| --- | --- |
+| Tutor | On. Sets a hand-built game in the learner's world. Prompt `tutor/v1` |
+| Profile Agent | On, as the learner's profile interview. Prompt `learner-profile/v1`. It asks what the learner loves, what is hard in learning, and what helps, and holds no diagnosis |
+| Safety Guard | On for everything a model writes and every free text a person types |
+| Parent Coach | Off, with the family coaching module. Prompt `parent-coach/v2` |
+| Planner | Off. Its weekly summary belongs to the family coaching module. For the tutor it will later adapt lesson length, difficulty, and order |
+| Skills Guide | Not built, and not planned for the tutor |
+
+The sections below describe every agent as designed, including those switched off.
+
 ## What "agent" means here
 
 An agent is one role played by the LLM. Each agent has:

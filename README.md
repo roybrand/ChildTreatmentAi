@@ -1,12 +1,13 @@
 # ChildTreatmentAi
 
-An app that helps families of children and teens with anxiety. Start with [CLAUDE.md](CLAUDE.md), which points to the project documents in [docs/](docs/).
+A tutor for school-age learners who find school hard: lessons as games in the learner's own world. Start with [CLAUDE.md](CLAUDE.md), which points to the project documents in [docs/](docs/).
 
 ## What is in the repository
 
 | Folder | Contents |
 | --- | --- |
 | `docs/` | Product, architecture, agents, safety, privacy, status, decisions |
+| `curriculum/` | The Israeli mathematics curriculum for grades 7 to 9 as a skill map: grade, topic, sub-topic, and which code makes each sub-topic's questions |
 | `prompts/` | Agent prompts, each agent's scenario set and scoring guide, the crisis rules |
 | `backend/src/ChildTreatment.Api/` | The ASP.NET Core API |
 | `backend/tests/` | Tests. They use a fake model and need no network |
@@ -56,6 +57,8 @@ flutter run
 
 To point the app at another server, add `--dart-define=API_BASE_URL=https://...`.
 
+The app opens as a tutor: lessons and the learner's profile. The family coaching module (coach, daily log, accommodation map, weekly summary) is switched off. To see it, set `"Features": { "FamilyCoaching": true }` in `appsettings.Development.json` and restart the API.
+
 ## Test
 
 ```bash
@@ -67,7 +70,7 @@ cd mobile && flutter test        # app
 
 ```bash
 dotnet run --project backend/tools/AgentEval                            # the Parent Coach, every scenario, on the cheaper testing models
-dotnet run --project backend/tools/AgentEval -- --agent profile-agent   # or planner
+dotnet run --project backend/tools/AgentEval -- --agent tutor           # or learner-profile, profile-agent, planner
 dotnet run --project backend/tools/AgentEval -- --group risky           # one group
 dotnet run --project backend/tools/AgentEval -- --id risk-01-medication
 dotnet run --project backend/tools/AgentEval -- --agent planner --list  # show the scenarios without running them; free

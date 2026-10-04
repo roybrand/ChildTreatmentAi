@@ -6,7 +6,19 @@ Status: draft written by the builders. It has not been reviewed by a clinician. 
 
 ## What the app is
 
-A support tool for families. It is not therapy, not a medical device, and not a substitute for a clinician. Onboarding and the settings screen say this plainly.
+A tutor. It is not therapy, not a medical device, and not a substitute for a teacher or a clinician. Onboarding says this plainly.
+
+## Rules for the tutor
+
+1. Code checks every number and every answer. A model never decides whether an answer is right.
+2. A model writes only the world around a hand-built game, and that text passes code checks and the safety review before a learner sees it. When either fails, a built-in world is used.
+3. Nothing is marked wrong, timed, or ranked. No streaks and no rewards that punish a bad day.
+4. The profile holds what the learner loves, what is hard in learning, and what helps. It holds no diagnosis or condition, nothing about feelings or the family, and no medication. When a parent names a condition, the practical learning need is written down and the label is not.
+5. No agent diagnoses, gives an opinion on a condition, or says anything about medication or therapy, for or against.
+6. No open-ended conversation between an agent and a learner. An agent that later responds to a learner works inside the fixed structure of a lesson.
+7. The crisis rules below run on every free text a person types, and the emergency screen is reachable from every screen.
+
+The rules for the coaching agent and for the young person's side, further down, belong to the family coaching module, which is switched off. They apply again if it is switched on.
 
 ## Rules for the coaching agent (parent side)
 

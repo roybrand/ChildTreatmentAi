@@ -59,6 +59,11 @@ class ApiClient {
     await tokens.clear();
   }
 
+  Future<Features> features() async {
+    final json = await _send('GET', '/api/features', authorized: false);
+    return Features.fromJson(json as Map<String, dynamic>);
+  }
+
   // ---- Children ----
 
   Future<List<Child>> children() async => _list(await _send('GET', '/api/children'), Child.fromJson);
@@ -162,14 +167,31 @@ class ApiClient {
   static const fractionsMixer = 'fractions-mixer-1';
 
   /// The first time a lesson is opened the Tutor sets it in the child's world, which can take a while.
-  Future<Lesson> lesson(String childId, String lessonId) async {
-    final json = await _send('GET', '/api/children/$childId/lessons/$lessonId');
+  /// [newWorld] asks the Tutor to set the lesson in a world again, for example after the profile changed.
+  Future<Lesson> lesson(String childId, String lessonId, {bool newWorld = false}) async {
+    final json = await _send('GET', '/api/children/$childId/lessons/$lessonId${newWorld ? '?newWorld=true' : ''}');
     return Lesson.fromJson(json as Map<String, dynamic>);
   }
 
   Future<void> saveLessonProgress(String childId, String lessonId, {required int step, required bool completed}) async {
     await _send('PUT', '/api/children/$childId/lessons/$lessonId/progress',
         body: {'step': step, 'completed': completed});
+  }
+
+  // ---- Practice by grade and topic ----
+
+  Future<List<CurriculumGrade>> curriculum() async {
+    final json = await _send('GET', '/api/curriculum') as Map<String, dynamic>;
+    return _list(json['grades'], CurriculumGrade.fromJson);
+  }
+
+  /// Questions for a sub-topic, told as stories from this learner's world where a question has a story.
+  Future<List<PracticeQuestion>> practice(String childId, String subtopicId) async =>
+      _list(await _send('GET', '/api/children/$childId/practice/$subtopicId'), PracticeQuestion.fromJson);
+
+  Future<PracticeCheck> checkAnswer(String questionId, String answer) async {
+    final json = await _send('POST', '/api/practice/check', body: {'questionId': questionId, 'answer': answer});
+    return PracticeCheck.fromJson(json as Map<String, dynamic>);
   }
 
   // ---- Plumbing ----

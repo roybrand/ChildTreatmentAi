@@ -1,11 +1,13 @@
 import 'dart:convert';
 
 import 'package:child_treatment/api/api_client.dart';
+import 'package:child_treatment/api/models.dart' show profileSections;
 import 'package:child_treatment/api/token_store.dart';
 import 'package:child_treatment/app_state.dart';
 import 'package:child_treatment/main.dart';
 import 'package:child_treatment/screens/crisis_screen.dart';
 import 'package:child_treatment/strings.dart';
+import 'package:child_treatment/widgets/scene.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,6 +22,9 @@ class FakeServer {
   final coachMessages = <String>[];
   final profileItems = <Map<String, dynamic>>[];
   int lessonStep = 0;
+
+  /// Whether the parent coaching side is switched on. The real server has it off.
+  bool coaching = true;
   Map<String, dynamic> coachReply = {'kind': 'Reply', 'text': 'תשובת המאמן', 'contacts': <dynamic>[]};
 
   http.Client get client => MockClient(_handle);
@@ -33,6 +38,14 @@ class FakeServer {
     }
     if (path == '/auth/login') {
       return _json(200, {'accessToken': 'a', 'refreshToken': 'r'});
+    }
+    if (path == '/api/features') {
+      return _json(200, {
+        'familyCoaching': coaching,
+        'profileSections': coaching
+            ? profileSections
+            : ['StrengthsAndInterests', 'WhatCalms', 'LearningPicture', 'WhatHasWorked'],
+      });
     }
     if (request.headers['Authorization'] != 'Bearer a') {
       return _json(401, null);
@@ -54,6 +67,40 @@ class FakeServer {
     if (path.endsWith('/coach/messages') && request.method == 'POST') {
       coachMessages.add(body!['text'] as String);
       return _json(200, coachReply);
+    }
+    if (path == '/api/curriculum') {
+      return _json(200, {
+        'grades': [
+          {
+            'grade': 7,
+            'name': 'כיתה ז',
+            'topics': [
+              {
+                'title': 'פתרון משוואות ושאלות מילוליות',
+                'domain': 'algebra',
+                'subtopics': [
+                  {'id': 's1', 'title': 'פתרון משוואות', 'generator': 'linear-equation'},
+                  {'id': 's2', 'title': 'שאלות מילוליות', 'generator': null},
+                ],
+              },
+            ],
+          },
+        ],
+      });
+    }
+    if (path == '/api/practice/check') {
+      return _json(200, {
+        'same': body!['answer'] == '3',
+        'answer': '3',
+        'steps': [
+          {'text': 'מחסרים 1 משני האגפים.', 'math': '2·x = 6'},
+        ],
+      });
+    }
+    if (path.endsWith('/practice/s1')) {
+      return _json(200, [
+        {'id': 's1:1', 'text': 'פתרו את המשוואה. מהו x?', 'math': '2·x + 1 = 7'},
+      ]);
     }
     if (path.endsWith('/progress')) {
       lessonStep = body!['step'] as int;
@@ -141,8 +188,9 @@ Future<FakeServer> pumpApp(
   bool signedIn = false,
   bool ready = false,
   Duration? idleTimeout,
+  bool coaching = true,
 }) async {
-  final server = FakeServer();
+  final server = FakeServer()..coaching = coaching;
   final tokens = MemoryTokenStore();
   if (signedIn || ready) {
     await tokens.write(const Tokens(access: 'a', refresh: 'r'));
@@ -159,6 +207,9 @@ Future<FakeServer> pumpApp(
 }
 
 void main() {
+  // The drifting backdrop never ends, so a screen would never settle with it running.
+  setUpAll(() => Scene.animate = false);
+
   testWidgets('the app is laid out right to left', (tester) async {
     await pumpApp(tester);
 
@@ -191,7 +242,10 @@ void main() {
 
     // Consent comes before anything about a child, and cannot be skipped.
     expect(find.text(Strings.consentTitle), findsOneWidget);
+    // The button sits below the consent points, so the list is scrolled to it first.
+    await tester.scrollUntilVisible(find.widgetWithText(FilledButton, Strings.continueLabel), 200);
     expect(tester.widget<FilledButton>(find.widgetWithText(FilledButton, Strings.continueLabel)).onPressed, isNull);
+    await tester.ensureVisible(find.byType(Checkbox));
     await tester.tap(find.byType(Checkbox));
     await tester.pump();
     await tester.ensureVisible(find.text(Strings.continueLabel));
@@ -274,6 +328,119 @@ void main() {
     expect(find.text(Strings.profileSections['StrengthsAndInterests']!), findsOneWidget);
   });
 
+  testWidgets('as a tutor the app opens on lessons, with no coaching tabs and no sections about conditions',
+      (tester) async {
+    await pumpApp(tester, ready: true, coaching: false);
+
+    expect(find.text(Strings.tabHome), findsOneWidget);
+    expect(find.text(Strings.tabTopics), findsOneWidget);
+    // The welcome page is in the learner's world: its name, and a greeting by name.
+    expect(find.text('סטודיו ללק'), findsOneWidget);
+    expect(find.textContaining('נועה,'), findsOneWidget);
+    expect(find.text(Strings.tabCoach), findsNothing);
+    expect(find.text(Strings.tabLog), findsNothing);
+    expect(find.text(Strings.tabMap), findsNothing);
+    expect(find.text(Strings.tabSummary), findsNothing);
+
+    await tester.tap(find.text(Strings.tabProfile));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.profileAdd));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byType(DropdownButtonFormField<String>));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.profileSections['LearningPicture']!), findsWidgets);
+    expect(find.text(Strings.profileSections['OtherConditions']!), findsNothing);
+    expect(find.text(Strings.profileSections['AnxietyPicture']!), findsNothing);
+    expect(find.text(Strings.profileSections['FamilyContext']!), findsNothing);
+  });
+
+  testWidgets('practice goes by grade and topic, shows the way when asked, and marks nothing wrong', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 915);
+    addTearDown(tester.view.reset);
+    await pumpApp(tester, ready: true, coaching: false);
+
+    await tester.tap(find.text(Strings.tabTopics));
+    await tester.pumpAndSettle();
+    // The whole map is in view: the topic, and under it its sub-topics.
+    expect(find.text('פתרון משוואות ושאלות מילוליות'), findsOneWidget);
+    // A sub-topic with no questions yet says so and does not open.
+    expect(find.textContaining(Strings.practiceSoon), findsOneWidget);
+
+    await tester.tap(find.text('פתרון משוואות'));
+    await tester.pumpAndSettle();
+    expect(find.text('2·x + 1 = 7'), findsOneWidget);
+
+    await tester.enterText(find.byType(TextField), '5');
+    await tester.tap(find.text(Strings.practiceCheck));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.practiceNotYet), findsOneWidget);
+
+    await tester.tap(find.text(Strings.practiceShowHow));
+    await tester.pumpAndSettle();
+    expect(find.text('2·x = 6'), findsOneWidget);
+    expect(find.text(Strings.practiceTheAnswer('3')), findsOneWidget);
+
+    await tester.tap(find.text(Strings.practiceNextQuestion));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.practiceDone), findsOneWidget);
+  });
+
+  testWidgets('the tutor opens a lesson from the lessons list', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 915);
+    addTearDown(tester.view.reset);
+    await pumpApp(tester, ready: true, coaching: false);
+
+    await tester.scrollUntilVisible(find.text(Strings.lessonStart), 200, scrollable: find.byType(Scrollable).first);
+    await tester.ensureVisible(find.text(Strings.lessonStart));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.lessonStart));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('סטודיו ללק'), findsOneWidget);
+    expect(find.text('יצרת גוון משלך.'), findsOneWidget);
+  });
+
+  testWidgets('a stuck learner is shown the solution step by step, and can try again or move on', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 915);
+    addTearDown(tester.view.reset);
+    await pumpApp(tester, ready: true);
+
+    await tester.tap(find.byTooltip(Strings.lessonOpen));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 3; i++) {
+      await tester.tap(find.text(Strings.lessonNext));
+      await tester.pumpAndSettle();
+    }
+    FilledButton next() => tester.widget<FilledButton>(find.widgetWithText(FilledButton, Strings.lessonNext));
+
+    // The explanation works the numbers out from the step: 3 of 4, twice, is 6 of 8.
+    await tester.tap(find.text(Strings.explainOpen));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.explainSmall(4, 3, 'ורוד', 1, 'לבן')), findsOneWidget);
+    await tester.tap(find.text(Strings.explainMore));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.explainTimes(8, 2, 4)), findsOneWidget);
+    await tester.tap(find.text(Strings.explainMore));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.explainIngredient('ורוד', 2, 3, 6)), findsOneWidget);
+
+    // "I get it" closes the explanation and leaves the work to the learner.
+    await tester.tap(find.text(Strings.explainGotIt));
+    await tester.pumpAndSettle();
+    expect(next().onPressed, isNull);
+
+    // "Move on" fills the step in, so nobody is left stuck.
+    await tester.tap(find.text(Strings.explainOpen));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.explainMoveOn));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.lessonMatch('הגוון')), findsOneWidget);
+    expect(next().onPressed, isNotNull);
+  });
+
   testWidgets('in the lesson the child pours until the mix matches, and nothing is marked wrong', (tester) async {
     // A phone held upright, where the whole game fits without scrolling.
     tester.view.devicePixelRatio = 1;
@@ -283,7 +450,7 @@ void main() {
 
     await tester.tap(find.byTooltip(Strings.lessonOpen));
     await tester.pumpAndSettle();
-    expect(find.text('סטודיו ללק'), findsOneWidget);
+    expect(find.textContaining('סטודיו ללק'), findsOneWidget);
     expect(find.text('יצרת גוון משלך.'), findsOneWidget);
 
     // Three sentences set the problem, then the game.

@@ -2,6 +2,7 @@ using ChildTreatment.Api.Coaching;
 using ChildTreatment.Api.Data;
 using ChildTreatment.Api.Safety;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ChildTreatment.Api.Endpoints;
 
@@ -66,11 +67,17 @@ public static class ChildEndpoints
         });
 
         var child = children.MapGroup("/{childId:guid}");
+        // The parent coaching side exists only while that module is switched on.
+        var coaching = child.MapGroup("").RequireFamilyCoaching();
 
-        child.MapPost("/profile-items", async (Guid childId, CreateProfileItemRequest request, AppDbContext db, TimeProvider time) =>
+        child.MapPost("/profile-items", async (
+            Guid childId, CreateProfileItemRequest request, AppDbContext db, TimeProvider time, IOptions<FeatureOptions> features) =>
         {
             if (!IsValidText(request.Text))
                 return TextProblem();
+            // The tutor keeps no section about anxiety, diagnoses, or the family.
+            if (!features.Value.ProfileSections.Contains(request.Section))
+                return Results.Problem("This profile section is not in use.", statusCode: 400);
             if (!await ChildExists(db, childId))
                 return Results.NotFound();
 
@@ -89,16 +96,18 @@ public static class ChildEndpoints
             return Results.Ok(new ProfileItemResponse(item.Id, item.Section, item.Text, item.Status));
         });
 
-        child.MapGet("/profile-items", async (Guid childId, AppDbContext db) =>
+        child.MapGet("/profile-items", async (Guid childId, AppDbContext db, IOptions<FeatureOptions> features) =>
         {
             var items = await db.ProfileItems
                 .Where(i => i.ChildId == childId && i.Status != ProfileItemStatus.Rejected)
                 .OrderBy(i => i.Section).ThenBy(i => i.CreatedAt)
                 .ToListAsync();
-            return items.Select(i => new ProfileItemResponse(i.Id, i.Section, i.Text, i.Status));
+            return items
+                .Where(i => features.Value.ProfileSections.Contains(i.Section))
+                .Select(i => new ProfileItemResponse(i.Id, i.Section, i.Text, i.Status));
         });
 
-        child.MapPost("/accommodations", async (Guid childId, CreateAccommodationRequest request, AppDbContext db, TimeProvider time) =>
+        coaching.MapPost("/accommodations", async (Guid childId, CreateAccommodationRequest request, AppDbContext db, TimeProvider time) =>
         {
             if (!IsValidText(request.Description))
                 return TextProblem();
@@ -118,13 +127,13 @@ public static class ChildEndpoints
             return Results.Ok(ToResponse(accommodation));
         });
 
-        child.MapGet("/accommodations", async (Guid childId, AppDbContext db) =>
+        coaching.MapGet("/accommodations", async (Guid childId, AppDbContext db) =>
         {
             var all = await db.Accommodations.Where(a => a.ChildId == childId).OrderBy(a => a.CreatedAt).ToListAsync();
             return all.Select(ToResponse);
         });
 
-        child.MapPatch("/accommodations/{id:guid}", async (Guid childId, Guid id, UpdateAccommodationRequest request, AppDbContext db) =>
+        coaching.MapPatch("/accommodations/{id:guid}", async (Guid childId, Guid id, UpdateAccommodationRequest request, AppDbContext db) =>
         {
             if (request.PlannedChange is { Length: > MaxTextLength })
                 return TextProblem();
@@ -144,7 +153,7 @@ public static class ChildEndpoints
             return Results.Ok(ToResponse(accommodation));
         });
 
-        child.MapPost("/log", async (Guid childId, CreateLogEntryRequest request, AppDbContext db, CrisisRules rules, TimeProvider time) =>
+        coaching.MapPost("/log", async (Guid childId, CreateLogEntryRequest request, AppDbContext db, CrisisRules rules, TimeProvider time) =>
         {
             if (!IsValidText(request.WhatHappened) ||
                 request.ChildReaction is { Length: > MaxTextLength } ||
@@ -189,7 +198,7 @@ public static class ChildEndpoints
                 hit is null ? null : new CrisisNotice(SafetyTexts.Crisis, SafetyTexts.CrisisContacts)));
         });
 
-        child.MapGet("/log", async (Guid childId, AppDbContext db) =>
+        coaching.MapGet("/log", async (Guid childId, AppDbContext db) =>
         {
             var entries = await db.ParentLogEntries
                 .Where(e => e.ChildId == childId)
@@ -199,7 +208,7 @@ public static class ChildEndpoints
             return entries.Select(ToResponse);
         });
 
-        child.MapPost("/coach/messages", async (Guid childId, SendCoachMessageRequest request, ParentCoachService coach, CancellationToken ct) =>
+        coaching.MapPost("/coach/messages", async (Guid childId, SendCoachMessageRequest request, ParentCoachService coach, CancellationToken ct) =>
         {
             if (!IsValidText(request.Text))
                 return TextProblem();
@@ -208,7 +217,7 @@ public static class ChildEndpoints
             return reply is null ? Results.NotFound() : Results.Ok(reply);
         });
 
-        child.MapGet("/coach/messages", async (Guid childId, AppDbContext db) =>
+        coaching.MapGet("/coach/messages", async (Guid childId, AppDbContext db) =>
         {
             var messages = await db.CoachingMessages
                 .Where(m => m.ChildId == childId)

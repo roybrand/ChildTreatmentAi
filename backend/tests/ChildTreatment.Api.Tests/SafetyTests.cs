@@ -38,6 +38,7 @@ public class CrisisRulesTests
     [Theory]
     [InlineData("parent-coach")]
     [InlineData("profile-agent")]
+    [InlineData("learner-profile")]
     public void The_rules_stop_exactly_the_scenarios_marked_as_crisis(string agent)
     {
         var scenarios = TestSupport.Scenarios(agent);

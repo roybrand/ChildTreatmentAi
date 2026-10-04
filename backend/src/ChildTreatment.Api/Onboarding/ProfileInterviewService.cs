@@ -2,6 +2,7 @@ using ChildTreatment.Api.Data;
 using ChildTreatment.Api.Llm;
 using ChildTreatment.Api.Safety;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace ChildTreatment.Api.Onboarding;
 
@@ -22,6 +23,7 @@ public sealed class ProfileInterviewService(
     ProfileAgent agent,
     CrisisRules crisisRules,
     TimeProvider time,
+    IOptions<FeatureOptions> features,
     ILogger<ProfileInterviewService> logger)
 {
     private const int HistoryMessages = 40;
@@ -31,7 +33,7 @@ public sealed class ProfileInterviewService(
     /// The wording avoids gendered forms, because the child's gender is not known yet.
     /// </summary>
     public static string Opening(string childName) =>
-        $"כדי שהליווי יתאים למשפחה שלכם, אשאל כמה שאלות על {childName}. " +
+        $"כדי שהשיעורים יתאימו בדיוק ל{childName}, אשאל כמה שאלות. " +
         "אפשר לענות בקצרה, לדלג על שאלה, ולעצור בכל רגע ולהמשיך בפעם אחרת. " +
         "כל דבר שארשום יוצג לכם לאישור.\n\n" +
         $"נתחיל מהדברים הטובים: מה הדברים האהובים על {childName}, ומה בא ל{childName} בקלות?";
@@ -51,10 +53,17 @@ public sealed class ProfileInterviewService(
             .Where(i => i.ChildId == childId)
             .OrderBy(i => i.Section).ThenBy(i => i.CreatedAt)
             .ToListAsync(ct);
+        var sections = features.Value.ProfileSections;
         var context = new InterviewContext
         {
             Age = child.AgeIn(now.Year),
-            Items = existing.Select(i => new ProfileNote(i.Section, names.Hide(i.Text), i.Status)).ToList(),
+            // Items in sections that are not in use are not sent to the model at all.
+            Items = existing
+                .Where(i => sections.Contains(i.Section))
+                .Select(i => new ProfileNote(i.Section, names.Hide(i.Text), i.Status))
+                .ToList(),
+            Prompt = features.Value.FamilyCoaching ? ProfileAgent.AgentName : ProfileAgent.LearnerProfile,
+            Sections = sections,
         };
 
         // The parent's message is stored before the model is called, so it survives a failure.

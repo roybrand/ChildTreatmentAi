@@ -14,7 +14,7 @@ public class TutorTests
         {"world":"סטודיו ללק","scene":"{{scene}}","request":"לקוחה רוצה בקבוק גדול, בדיוק באותו גוון.",
          "ingredient_a":{"name":"ורוד","color":"#e85d9a"},"ingredient_b":{"name":"לבן","color":"{{colorB}}"},
          "small_label":"הבקבוק הקטן","big_label":"הבקבוק הגדול","result_word":"הגוון",
-         "why_needed":"כל מי שמערבב משהו צריך לדעת להכין אותו שוב בגודל אחר.","link":"Mixing polish is a real proportion."}
+         "why_needed":"כל מי שמערבב משהו צריך לדעת להכין אותו שוב בגודל אחר.","emoji":"💅","customer":"👩","container":"bottle","thanks":"בדיוק הגוון שרציתי!","items":"בקבוקי לק","greeting":"הסטודיו שלך מחכה.","decor":"💅💄✨","link":"Mixing polish is a real proportion."}
         """;
 
     private sealed record Arranged(LessonService Service, AppDbContext Db, Guid ChildId, string Database);
@@ -138,7 +138,7 @@ public class TutorTests
     }
 
     [Fact]
-    public async Task Progress_only_moves_forward_and_completion_is_kept()
+    public async Task The_lesson_resumes_where_the_learner_is_and_completion_is_kept()
     {
         var llm = new FakeLlm { CoachReply = World() };
         var arranged = await Arrange(llm);
@@ -147,7 +147,7 @@ public class TutorTests
         await arranged.Service.SaveProgressAsync(arranged.ChildId, LessonService.FractionsMixer, 4, completed: true);
         var lesson = await arranged.Service.SaveProgressAsync(arranged.ChildId, LessonService.FractionsMixer, 1, completed: false);
 
-        Assert.Equal(4, lesson!.StepReached);
+        Assert.Equal(1, lesson!.StepReached);
         Assert.True(lesson.Completed);
     }
 

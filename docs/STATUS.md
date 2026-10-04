@@ -4,7 +4,47 @@ Last updated: 2026-10-03
 
 ## Phase
 
-Phase 1, first slice built on both sides. The backend runs locally, the Parent Coach answers through it, and the app has the phase 1 screens on a phone and in a browser.
+The product is now a tutor. Decided by the founder on 2026-10-03; see [DECISIONS.md](DECISIONS.md) and [PRODUCT.md](PRODUCT.md).
+
+What is switched on: the learner's profile interview, the first lesson (fractions with the Mixer game, set by the Tutor in the learner's world), and the emergency screen. The app opens on the lessons.
+
+What is switched off: the family coaching module (Parent Coach, accommodation map, daily log, weekly summary). It is built, tested, and kept behind the `Features:FamilyCoaching` setting. Everything below under "Done" that concerns coaching describes that module.
+
+Changed with the switch, on 2026-10-03, with no model calls:
+
+- The profile holds what the learner loves, what is hard in learning, and what helps. The sections about anxiety, diagnoses, and the family are not in use, and the server refuses items for them
+- A new interview prompt, `learner-profile/v1`, with its own scenario set of 11 and scoring guide. It writes down the practical learning need and never a diagnosis. **It has not been run against the model at all**
+- The app shows two tabs, lessons and profile. Its name, consent text, and wording are rewritten for a tutor. The name "ללמוד בדרך שלי" is a working name
+- 77 backend tests and 22 app tests pass
+
+Changed on 2026-10-04 after the founder played the lesson, with no model calls:
+
+- An empty part of the container looked the same as a part filled with white, so a container that was not full looked finished. The inside of the container is now grey, the built-in world mixes red and yellow, and the message says how many parts are missing
+- The goal of the game read as "the same amount of colour". It now says to fill the container until the two colour circles match
+- The lesson takes its look from the world: the Tutor also gives a symbol for the place, a face for whoever asks, the kind of container, and what that person says when the mix matches. The request is shown as that person's speech, and the screen is tinted with the two colours of the mix
+- A lesson first opened before the profile had any interests is set in the learner's world the next time it is opened, and a button on the lesson screen asks the Tutor for another world
+- A container with more parts is now drawn bigger, with every part the same size. Before, the "big bottle" was the same height cut into thinner parts, which contradicted the story. Wording that said "the same amount" now says "the same part of the whole"
+- The lessons page asks for one interest when the profile has none, and a lesson restarts from its first step when its world changes
+- Every step with a solution has a "להראות לי איך" button. It walks through the solution in five small animated pictures, with every number worked out by code from the step. The learner leaves it with "הבנתי, רוצה לנסות", which leaves the work to them, or "להמשיך הלאה", which fills the step in. Neither is marked
+- **These changes to the Tutor's prompt have not been run against the model**
+
+Curriculum and practice, built on 2026-10-04 with no model calls:
+
+- The Ministry of Education's mathematics curriculum for grades 7 to 9 is in `curriculum/math-il.json`: 31 topics with their teaching hours and order, and 72 sub-topics. The topics and hours were read from the Ministry's document; tests check that each grade adds up to 150 hours and to the Ministry's split by domain
+- 42 of the 72 sub-topics have a question generator: code that makes a question, its exact answer, and the steps of its solution. The 30 without are mostly word problems, proofs, constructions, and questions that need a graph or a drawing
+- The app has a practice screen: grade, topic, sub-topic, then a set of five questions. An answer can be typed as a whole number, a fraction, or a decimal. Nothing is marked wrong, and the solution can be shown step by step at any time
+- 95 backend tests and 24 app tests pass
+
+Redesign on 2026-10-04, after the founder called the app a mess, with no model calls:
+
+- **Welcome page.** The app opens on the learner's own world: its symbol and name, a greeting by name, the world's colours as the background, and its symbols drifting behind the page. Two large doors lead to the lesson and to the topic map
+- **Topic map.** Three tabs: home, topics, profile. The topics page has the grade as three large buttons, then each area of mathematics with its topics as cards, and each topic's sub-topics as buttons in plain view. A sub-topic without questions is shown and marked as coming
+- **Questions as scenes.** A question is asked by the character from the learner's world, on a dark stage in the world's colours, and the character answers when the answer fits. Nine kinds of question are told as stories from the world, using the place and the things sold there: prices, discounts, orders, shelves, a sign, a delivery box. The other 33 are still plain mathematics inside the same scene
+- **Honest limit.** The characters and symbols are emoji that move. There are no drawn cartoon figures: that needs artwork, drawn or generated, for each world
+- The Tutor's world now also carries a greeting, the things sold in the world, and its symbols. **This addition to the Tutor's prompt has not been run against the model.** A world written before this is rebuilt the next time it is read, which is one more Tutor call
+- Not done: questions set in the learner's world, a record of what each learner has practised or mastered, and grades 1 to 6 and 10 to 12
+- The Hebrew of the questions and solutions was written by Claude and has not been read by a mathematics teacher
+- Not done: real pictures. The faces and symbols are emoji. Drawn or generated artwork for each world is a separate piece of work
 
 ## Done
 
@@ -126,13 +166,20 @@ Spending:
 
 ## Next
 
-1. Run the Profile Agent, Planner, and Tutor evaluations on the production models to get a reading that can be trusted. Needs the founder's go-ahead; about $1.50 for the three
-1a. Founder plays the lesson and says what feels wrong. Then the next lessons in fractions, and the cartoon style
-2. Founder runs the app in a browser and on their Android phone and reports what looks or reads wrong
-3. Give the Parent Coach the latest weekly summary, then re-run its evaluation
-4. Store the child's grammatical gender, asked in the interview
-5. Streaming for coach replies, which take about 20 seconds today
-6. Phase 2: the young person's check-in, calming tools, and brave steps
+1. Founder plays the lesson and goes through the profile interview, and says what feels wrong
+2. Run the evaluations of the two agents that are switched on, `learner-profile` and `tutor`. Needs the founder's go-ahead; about $0.50 for both on the testing models, about $1 on the production models
+3. A mathematics teacher reads the practice questions and solutions, a sample from each sub-topic
+4. Questions for the 30 sub-topics that have none, starting with word problems, and questions set in the learner's world
+5. A record of what each learner practised, and a progress view for the parent
+6. A second game template, a balance for equations, tied to its sub-topic in the skill map
+7. The learner's own sign-in
+8. Grades 1 to 6, then 10 to 12, from their own Ministry documents
+
+For the family coaching module, only if it is switched on again:
+
+- Give the Parent Coach the latest weekly summary, then re-run its evaluation
+- Streaming for coach replies, which take about 20 seconds today
+- The young person's check-in, calming tools, and brave steps
 
 ## Needs the founder
 

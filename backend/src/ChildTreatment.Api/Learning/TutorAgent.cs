@@ -22,20 +22,47 @@ public sealed record LessonWorld(
     string SmallLabel,
     string BigLabel,
     string ResultWord,
-    string WhyNeeded)
+    string WhyNeeded,
+    // The look of the world: a symbol for the place, a face for whoever asks, and the kind of container drawn.
+    string Emoji = "🎨",
+    string Customer = "🙂",
+    string Container = "jar",
+    string Thanks = "בדיוק אותו דבר. תודה!",
+    // For the welcome page and for practice questions told as stories from this world.
+    string Items = "פריטים",
+    string Greeting = "טוב לראות אותך.",
+    string Decor = "✨⭐🎈")
 {
+    public static readonly IReadOnlySet<string> Containers =
+        new HashSet<string> { "bottle", "jar", "jug", "bowl", "bucket", "flask" };
+
+    /// <summary>A world stored before the look was added has no look; it gets the plain one.</summary>
+    public LessonWorld Complete() => this with
+    {
+        Emoji = string.IsNullOrWhiteSpace(Emoji) ? Default.Emoji : Emoji,
+        Customer = string.IsNullOrWhiteSpace(Customer) ? Default.Customer : Customer,
+        Container = Containers.Contains(Container ?? "") ? Container! : Default.Container,
+        Thanks = string.IsNullOrWhiteSpace(Thanks) ? Default.Thanks : Thanks,
+        Items = string.IsNullOrWhiteSpace(Items) ? Default.Items : Items,
+        Greeting = string.IsNullOrWhiteSpace(Greeting) ? Default.Greeting : Greeting,
+        Decor = string.IsNullOrWhiteSpace(Decor) ? Default.Decor : Decor,
+    };
+
     /// <summary>Written by people. Used when the child has no interests on file, or the Tutor's world cannot be used.</summary>
     public static readonly LessonWorld Default = new(
         "סדנת הצבע",
         "ערבבת צבע משלך בסדנה שלך.",
-        "מישהי ראתה את הצבע ורוצה כמות גדולה יותר, בדיוק באותו צבע.",
-        new Ingredient("כחול", "#2F6FDE"),
-        new Ingredient("לבן", "#F4F4F4"),
+        "אהבתי את הצבע הזה! אפשר כמות גדולה יותר, בדיוק באותו צבע?",
+        // Two strong colours whose mix is plainly a third: neither can be mistaken for an empty part.
+        new Ingredient("אדום", "#E53935"),
+        new Ingredient("צהוב", "#FDD835"),
         "הכלי הקטן",
         "הכלי הגדול",
         "הצבע",
         "כל מי שמערבב משהו, צבע, מתכון או משקה, צריך לדעת להכין את אותו דבר שוב בכמות אחרת. " +
-        "שבר הוא הדרך לכתוב כמה מתוך השלם, כך שזה יעבוד בכל גודל.");
+        "שבר הוא הדרך לכתוב כמה מתוך השלם, כך שזה יעבוד בכל גודל.",
+        "🎨", "🧑‍🎨", "jar", "בדיוק אותו צבע. תודה!",
+        "פחיות צבע", "טוב לראות אותך בסדנה.", "🎨🖌️🖍️✨🌈");
 }
 
 /// <summary>What the Tutor knows about the child. All text is already pseudonymized.</summary>
@@ -123,7 +150,11 @@ public sealed partial class TutorAgent(
 
             var world = new LessonWorld(
                 Text("world"), Text("scene"), Text("request"), Mix("ingredient_a"), Mix("ingredient_b"),
-                Text("small_label"), Text("big_label"), Text("result_word"), Text("why_needed"));
+                Text("small_label"), Text("big_label"), Text("result_word"), Text("why_needed"),
+                Text("emoji"), Text("customer"),
+                // A container the game cannot draw becomes the plain one; it is no reason to lose the world.
+                LessonWorld.Containers.Contains(Text("container")) ? Text("container") : LessonWorld.Default.Container,
+                Text("thanks"), Text("items"), Text("greeting"), Text("decor"));
 
             return Validate(world) is { } problem ? (null, null, problem) : (world, Text("link"), null);
         }
@@ -137,11 +168,11 @@ public sealed partial class TutorAgent(
     /// <returns>What is wrong with the world, or null when code can use it.</returns>
     public static string? Validate(LessonWorld world)
     {
-        string[] sentences = [world.Scene, world.Request, world.WhyNeeded];
+        string[] sentences = [world.Scene, world.Request, world.WhyNeeded, world.Thanks, world.Greeting];
         string[] names =
         [
             world.World, world.IngredientA.Name, world.IngredientB.Name,
-            world.SmallLabel, world.BigLabel, world.ResultWord,
+            world.SmallLabel, world.BigLabel, world.ResultWord, world.Items,
         ];
 
         if (sentences.Any(s => s.Length is 0 or > MaxSentence) || names.Any(n => n.Length is 0 or > MaxName))
@@ -153,6 +184,11 @@ public sealed partial class TutorAgent(
             return "A colour is not a hex code.";
         if (ColorDistance(world.IngredientA.Color, world.IngredientB.Color) < MinColorDistance)
             return "The two colours are too close to tell apart.";
+        // A symbol is a picture, never text: a letter or a digit here would be wording that skipped the checks above.
+        if (new[] { world.Emoji, world.Customer, world.Decor }.Any(e => e.Length is 0 or > 60 || e.Any(char.IsLetterOrDigit)))
+            return "A symbol is missing or is not a picture.";
+        if (!LessonWorld.Containers.Contains(world.Container))
+            return "The container is not one the game can draw.";
         if (string.Equals(world.IngredientA.Name, world.IngredientB.Name, StringComparison.Ordinal))
             return "The two ingredients have the same name.";
         return null;
@@ -176,6 +212,10 @@ public sealed partial class TutorAgent(
         Containers: {world.SmallLabel}, {world.BigLabel}
         The mix is called: {world.ResultWord}
         Why the idea is needed: {world.WhyNeeded}
+        What the one who asked says when the mix matches: {world.Thanks}
+        Symbols: {world.Emoji} {world.Customer} {world.Decor}
+        Things made or sold in this world, used in practice questions: {world.Items}
+        Greeting on the welcome page: {world.Greeting}
         """;
 
     public static string FormatContext(TutorContext context)
@@ -212,7 +252,7 @@ public sealed partial class TutorAgent(
         string[] fields =
         [
             "world", "scene", "request", "ingredient_a", "ingredient_b",
-            "small_label", "big_label", "result_word", "why_needed", "link",
+            "small_label", "big_label", "result_word", "why_needed", "emoji", "customer", "container", "thanks", "items", "greeting", "decor", "link",
         ];
         return new Dictionary<string, JsonElement>
         {

@@ -266,6 +266,112 @@ class SummaryResult {
       );
 }
 
+/// Which parts of the product the server has switched on.
+class Features {
+  const Features({required this.familyCoaching, required this.profileSections});
+
+  /// The tutor on its own: the parent coaching side is off, and the profile holds learning only.
+  static const tutor = Features(
+    familyCoaching: false,
+    profileSections: ['StrengthsAndInterests', 'WhatCalms', 'LearningPicture', 'WhatHasWorked'],
+  );
+
+  /// The parent coaching side: coach, daily log, accommodation map, weekly summary.
+  final bool familyCoaching;
+
+  /// The profile sections in use, by the server's names.
+  final List<String> profileSections;
+
+  factory Features.fromJson(Map<String, dynamic> json) => Features(
+        familyCoaching: json['familyCoaching'] as bool,
+        profileSections: (json['profileSections'] as List<dynamic>).cast<String>(),
+      );
+}
+
+class Subtopic {
+  const Subtopic({required this.id, required this.title, required this.hasQuestions});
+
+  final String id;
+  final String title;
+
+  /// False when no questions are built for this sub-topic yet.
+  final bool hasQuestions;
+
+  factory Subtopic.fromJson(Map<String, dynamic> json) => Subtopic(
+        id: json['id'] as String,
+        title: json['title'] as String,
+        hasQuestions: json['generator'] != null,
+      );
+}
+
+class CurriculumTopic {
+  const CurriculumTopic({required this.title, required this.domain, required this.subtopics});
+
+  final String title;
+
+  /// algebra, number, or geometry.
+  final String domain;
+  final List<Subtopic> subtopics;
+
+  factory CurriculumTopic.fromJson(Map<String, dynamic> json) => CurriculumTopic(
+        title: json['title'] as String,
+        domain: json['domain'] as String,
+        subtopics:
+            (json['subtopics'] as List<dynamic>).map((s) => Subtopic.fromJson(s as Map<String, dynamic>)).toList(),
+      );
+}
+
+class CurriculumGrade {
+  const CurriculumGrade({required this.grade, required this.name, required this.topics});
+
+  final int grade;
+  final String name;
+  final List<CurriculumTopic> topics;
+
+  factory CurriculumGrade.fromJson(Map<String, dynamic> json) => CurriculumGrade(
+        grade: json['grade'] as int,
+        name: json['name'] as String,
+        topics:
+            (json['topics'] as List<dynamic>).map((t) => CurriculumTopic.fromJson(t as Map<String, dynamic>)).toList(),
+      );
+}
+
+/// A sentence, with an optional line of mathematics shown left to right under it.
+class MathLine {
+  const MathLine({required this.text, this.math});
+
+  final String text;
+  final String? math;
+
+  factory MathLine.fromJson(Map<String, dynamic> json) =>
+      MathLine(text: json['text'] as String, math: json['math'] as String?);
+}
+
+class PracticeQuestion {
+  const PracticeQuestion({required this.id, required this.ask});
+
+  final String id;
+  final MathLine ask;
+
+  factory PracticeQuestion.fromJson(Map<String, dynamic> json) =>
+      PracticeQuestion(id: json['id'] as String, ask: MathLine.fromJson(json));
+}
+
+/// What the server says about an answer. It is checked by code, with exact arithmetic.
+class PracticeCheck {
+  const PracticeCheck({required this.same, required this.answer, required this.steps});
+
+  final bool same;
+  final String answer;
+  final List<MathLine> steps;
+
+  factory PracticeCheck.fromJson(Map<String, dynamic> json) => PracticeCheck(
+        same: json['same'] as bool,
+        answer: json['answer'] as String,
+        steps: (json['steps'] as List<dynamic>).map((s) => MathLine.fromJson(s as Map<String, dynamic>)).toList(),
+      );
+}
+
 class Ingredient {
   const Ingredient({required this.name, required this.color});
 
@@ -292,6 +398,12 @@ class LessonWorld {
     required this.bigLabel,
     required this.resultWord,
     required this.whyNeeded,
+    this.emoji = '🎨',
+    this.customer = '🙂',
+    this.container = 'jar',
+    this.thanks = 'בדיוק אותו דבר. תודה!',
+    this.greeting = 'טוב לראות אותך.',
+    this.decor = '✨⭐🎈',
   });
 
   final String world;
@@ -304,6 +416,24 @@ class LessonWorld {
   final String resultWord;
   final String whyNeeded;
 
+  /// A symbol for the place, shown beside its name.
+  final String emoji;
+
+  /// The face of whoever asks for more of the mix.
+  final String customer;
+
+  /// The kind of container the game draws: bottle, jar, jug, bowl, bucket, or flask.
+  final String container;
+
+  /// What the one who asked says when the mix matches.
+  final String thanks;
+
+  /// The sentence that welcomes the learner into their world.
+  final String greeting;
+
+  /// Emoji that belong to this world, one after another. They drift across the backdrop.
+  final String decor;
+
   factory LessonWorld.fromJson(Map<String, dynamic> json) => LessonWorld(
         world: json['world'] as String,
         scene: json['scene'] as String,
@@ -314,6 +444,12 @@ class LessonWorld {
         bigLabel: json['bigLabel'] as String,
         resultWord: json['resultWord'] as String,
         whyNeeded: json['whyNeeded'] as String,
+        emoji: json['emoji'] as String? ?? '🎨',
+        customer: json['customer'] as String? ?? '🙂',
+        container: json['container'] as String? ?? 'jar',
+        thanks: json['thanks'] as String? ?? 'בדיוק אותו דבר. תודה!',
+        greeting: json['greeting'] as String? ?? 'טוב לראות אותך.',
+        decor: json['decor'] as String? ?? '✨⭐🎈',
       );
 }
 

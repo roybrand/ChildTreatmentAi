@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../api/api_client.dart';
+import '../api/models.dart';
 import '../app_state.dart';
 import '../strings.dart';
 import '../widgets/crisis_button.dart';
@@ -8,6 +10,8 @@ import '../widgets/responsive.dart';
 import 'accommodations_screen.dart';
 import 'coach_screen.dart';
 import 'lesson_screen.dart';
+import 'lessons_screen.dart';
+import 'practice_screen.dart';
 import 'log_screen.dart';
 import 'profile_screen.dart';
 import 'summary_screen.dart';
@@ -30,6 +34,29 @@ class _HomeScreenState extends State<HomeScreen> {
   int _tab = 0;
 
   void _selectTab(int index) => setState(() => _tab = index);
+
+  // The learner's world, shared by the welcome page and the topic map. Null while it is being prepared.
+  LessonWorld? _world;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.state.features.familyCoaching) {
+      _loadWorld();
+    }
+  }
+
+  /// Reads the world, which the first time asks the Tutor to build it from the profile.
+  Future<void> _loadWorld() async {
+    try {
+      final lesson = await widget.state.api.lesson(widget.state.child!.id, ApiClient.fractionsMixer);
+      if (mounted) {
+        setState(() => _world = lesson.world);
+      }
+    } catch (_) {
+      // The pages still work without a world, on a plain background.
+    }
+  }
 
   Future<void> _onMenu(_MenuAction action) async {
     switch (action) {
@@ -68,36 +95,58 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final api = widget.state.api;
     final child = widget.state.child!;
+    final features = widget.state.features;
+    final profile = ProfileScreen(api: api, child: child, sections: features.profileSections);
+
+    // The tutor is the product. The parent coaching side appears only when the server has it switched on.
+    final tabs = <(IconData, String, Widget)>[
+      if (features.familyCoaching) ...[
+        (Icons.chat_bubble_outline, Strings.tabCoach, CoachScreen(api: api, child: child)),
+        (Icons.edit_note, Strings.tabLog, LogScreen(api: api, child: child)),
+        (Icons.map_outlined, Strings.tabMap, AccommodationsScreen(api: api, child: child)),
+        (Icons.person_outline, Strings.tabProfile, profile),
+        (Icons.insights_outlined, Strings.tabSummary, SummaryScreen(api: api, child: child)),
+      ] else ...[
+        (
+          Icons.home_outlined,
+          Strings.tabHome,
+          WelcomeScreen(
+            api: api,
+            child: child,
+            world: _world,
+            onWorldChanged: _loadWorld,
+            onOpenTopics: () => _selectTab(1),
+          ),
+        ),
+        (Icons.account_tree_outlined, Strings.tabTopics, PracticeScreen(api: api, child: child, world: _world)),
+        (Icons.person_outline, Strings.tabProfile, ContentWidth(child: profile)),
+      ],
+    ];
 
     final wide = isWide(context);
 
-    // Each tab keeps its state while the parent moves between them.
-    final tabs = ContentWidth(
-      child: IndexedStack(
-        key: _tabsKey,
-        index: _tab,
-        children: [
-          CoachScreen(api: api, child: child),
-          LogScreen(api: api, child: child),
-          AccommodationsScreen(api: api, child: child),
-          ProfileScreen(api: api, child: child),
-          SummaryScreen(api: api, child: child),
-        ],
-      ),
+    // Each tab keeps its state while the user moves between them.
+    final stack = IndexedStack(
+      key: _tabsKey,
+      index: _tab,
+      children: [for (final tab in tabs) tab.$3],
     );
+    // The tutor's pages fill the window with the learner's world; the coaching pages stay in a column.
+    final Widget body = features.familyCoaching ? ContentWidth(child: stack) : stack;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(child.nickname),
         actions: [
-          // The lesson is the child's. It opens on its own screen, away from the parent's tabs.
-          IconButton(
-            onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute<void>(builder: (_) => LessonScreen(api: api, child: child)),
+          // With the coaching tabs on, the lesson opens from here, on its own screen.
+          if (features.familyCoaching)
+            IconButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(builder: (_) => LessonScreen(api: api, child: child)),
+              ),
+              tooltip: Strings.lessonOpen,
+              icon: const Icon(Icons.school_outlined),
             ),
-            tooltip: Strings.lessonOpen,
-            icon: const Icon(Icons.school_outlined),
-          ),
           const CrisisButton(),
           PopupMenuButton<_MenuAction>(
             onSelected: _onMenu,
@@ -116,30 +165,22 @@ class _HomeScreenState extends State<HomeScreen> {
                   selectedIndex: _tab,
                   onDestinationSelected: _selectTab,
                   labelType: NavigationRailLabelType.all,
-                  destinations: const [
-                    NavigationRailDestination(icon: Icon(Icons.chat_bubble_outline), label: Text(Strings.tabCoach)),
-                    NavigationRailDestination(icon: Icon(Icons.edit_note), label: Text(Strings.tabLog)),
-                    NavigationRailDestination(icon: Icon(Icons.map_outlined), label: Text(Strings.tabMap)),
-                    NavigationRailDestination(icon: Icon(Icons.person_outline), label: Text(Strings.tabProfile)),
-                    NavigationRailDestination(icon: Icon(Icons.insights_outlined), label: Text(Strings.tabSummary)),
+                  destinations: [
+                    for (final tab in tabs) NavigationRailDestination(icon: Icon(tab.$1), label: Text(tab.$2)),
                   ],
                 ),
                 const VerticalDivider(width: 1),
-                Expanded(child: tabs),
+                Expanded(child: body),
               ],
             )
-          : tabs,
+          : body,
       bottomNavigationBar: wide
           ? null
           : NavigationBar(
               selectedIndex: _tab,
               onDestinationSelected: _selectTab,
-              destinations: const [
-                NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: Strings.tabCoach),
-                NavigationDestination(icon: Icon(Icons.edit_note), label: Strings.tabLog),
-                NavigationDestination(icon: Icon(Icons.map_outlined), label: Strings.tabMap),
-                NavigationDestination(icon: Icon(Icons.person_outline), label: Strings.tabProfile),
-                NavigationDestination(icon: Icon(Icons.insights_outlined), label: Strings.tabSummary),
+              destinations: [
+                for (final tab in tabs) NavigationDestination(icon: Icon(tab.$1), label: tab.$2),
               ],
             ),
     );

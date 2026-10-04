@@ -38,12 +38,15 @@ sealed class LessonStep {
 
 /// One sentence, optionally with containers shown beside it.
 class TellStep extends LessonStep {
-  const TellStep(this.text, {this.show = const []});
+  const TellStep(this.text, {this.show = const [], this.fromCustomer = false});
 
   final String text;
 
   /// Filled containers to show, each as a fraction of the first ingredient.
   final List<Fraction> show;
+
+  /// True when the sentence is said by whoever asks for the mix, and is shown as their speech.
+  final bool fromCustomer;
 }
 
 /// The child pours into a container of [slots] parts until the mix matches [target].
@@ -92,16 +95,17 @@ List<LessonStep> mixerLessonSteps(LessonWorld world) {
     // 1. A real problem
     TellStep(world.scene),
     TellStep('${world.smallLabel}: 4 חלקים. 3 $a ו-1 $b.', show: const [mine]),
-    TellStep(world.request),
+    TellStep(world.request, fromCustomer: true),
     // 2. Play
-    MixStep('${world.bigLabel}: 8 חלקים. צריך בדיוק את $result שיצרת.', slots: 8, target: mine),
+    // The amount grows and the colour must not change: the two circles are what is compared.
+    MixStep('${world.bigLabel}: 8 חלקים. ממלאים את כולו, עד ששני העיגולים באותו צבע בדיוק.', slots: 8, target: mine),
     // 3. Discover
-    TellStep('3 מתוך 4, ו-6 מתוך 8: זה בדיוק אותו דבר.', show: const [mine, Fraction(6, 8)]),
-    const TellStep('שני המספרים הוכפלו, והתערובת נשארה אותה תערובת.', show: [mine, Fraction(6, 8)]),
-    MixStep('ועכשיו 12 חלקים. שוב צריך בדיוק את $result שיצרת.', slots: 12, target: mine),
+    TellStep('הכלי גדל, והצבע לא השתנה: 3 מתוך 4, ו-6 מתוך 8.', show: const [mine, Fraction(6, 8)]),
+    const TellStep('הכול הוכפל, גם הכלי וגם מה שבתוכו, ולכן הצבע נשאר אותו צבע.', show: [mine, Fraction(6, 8)]),
+    MixStep('ועכשיו 12 חלקים. שוב ממלאים עד ששני העיגולים באותו צבע בדיוק.', slots: 12, target: mine),
     // 4. Name it
     const TellStep('למה שעשית יש שם. 3 חלקים מתוך 4 כותבים ¾, וזה שבר.'),
-    const TellStep('¾ ו-6⁄8 הם אותה כמות. קוראים להם שברים שווים.', show: [mine, Fraction(6, 8)]),
+    const TellStep('¾ ו-6⁄8 הם אותו חלק מהשלם. קוראים להם שברים שווים.', show: [mine, Fraction(6, 8)]),
     TellStep(world.whyNeeded),
     // 5. Practise
     MixStep('תערובת חדשה: חצי $a וחצי $b. קודם ב-4 חלקים.', slots: 4, target: half),

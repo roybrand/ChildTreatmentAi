@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using ChildTreatment.Api;
 using ChildTreatment.Api.Coaching;
 using ChildTreatment.Api.Data;
 using ChildTreatment.Api.Endpoints;
@@ -47,6 +48,7 @@ builder.Services.AddCors(options => options.AddPolicy("WebApp", policy =>
             || (allowLocalOrigins && new Uri(origin).IsLoopback))
         .AllowAnyHeader().AllowAnyMethod()));
 
+builder.Services.Configure<FeatureOptions>(builder.Configuration.GetSection("Features"));
 builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection("Llm"));
 var promptOptions = builder.Configuration.GetSection("Prompts").Get<PromptOptions>() ?? new PromptOptions();
 var promptStore = new PromptStore(promptOptions);
@@ -60,6 +62,7 @@ builder.Services.AddScoped<ProfileAgent>();
 builder.Services.AddScoped<ProfileInterviewService>();
 builder.Services.AddScoped<WeeklySummaryAgent>();
 builder.Services.AddScoped<WeeklySummaryService>();
+builder.Services.AddSingleton(Curriculum.Load());
 builder.Services.AddScoped<TutorAgent>();
 builder.Services.AddScoped<LessonService>();
 
@@ -87,6 +90,12 @@ app.Use(async (context, next) =>
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }));
 // Reachable without signing in: a person in a crisis must never meet a login screen first.
 app.MapGet("/api/crisis-contacts", () => new CrisisNotice(SafetyTexts.Crisis, SafetyTexts.CrisisContacts));
+// The app asks which parts of the product are switched on, so it shows only those.
+app.MapGet("/api/features", (Microsoft.Extensions.Options.IOptions<FeatureOptions> features) => new
+{
+    familyCoaching = features.Value.FamilyCoaching,
+    profileSections = features.Value.ProfileSections.OrderBy(s => s).Select(s => s.ToString()),
+});
 app.MapGroup("/auth").MapIdentityApi<AppUser>();
 app.MapFamilyEndpoints();
 app.MapChildEndpoints();

@@ -11,6 +11,7 @@ public sealed class PromptOptions
     {
         ["parent-coach"] = "v2",
         ["profile-agent"] = "v1",
+        ["learner-profile"] = "v1",
         ["planner"] = "v2",
         ["safety-review"] = "v2",
         ["summary-review"] = "v1",

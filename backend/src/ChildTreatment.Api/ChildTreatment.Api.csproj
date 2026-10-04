@@ -19,6 +19,7 @@
   <!-- Agent prompts and safety rules live at the repo root and ship with the application. -->
   <ItemGroup>
     <Content Include="..\..\..\prompts\**\*" Link="prompts\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\..\curriculum\**\*" Link="curriculum\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
   <ItemGroup>

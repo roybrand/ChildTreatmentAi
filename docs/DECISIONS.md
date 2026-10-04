@@ -2,6 +2,32 @@
 
 Newest first. Each entry records what was decided and why. To reverse a decision, add a new entry; do not edit the old one.
 
+## 2026-10-04: The skill map follows the Israeli curriculum, and practice questions are made by code
+
+The tutor follows the Ministry of Education's mathematics curriculum. Grades 7 to 9 are in the project as data, in `curriculum/math-il.json`: each grade's topics with their teaching hours and order, taken from the Ministry's curriculum document, and under each topic its sub-topics. A sub-topic names the code that makes its practice questions. Questions, their answers, and their step-by-step explanations are all made and checked by code, with exact arithmetic. No model is involved.
+
+**Why:** founder's decision to build by grade, topic, and sub-topic. Following the official curriculum means a learner at home covers what their class covers, and a parent can see where they are. Making questions by code keeps the promise that the mathematics is never wrong, costs nothing to run, and lets every question carry its own explanation.
+
+**Limits of this choice:** a generator makes one kind of question per sub-topic, with numbers that change. It does not make word problems, proofs, constructions, or questions about graphs, so the sub-topics that are mostly those have no questions yet. Sub-topic titles are sometimes ours and not the Ministry's wording, where one of its headings covers several skills.
+
+**Not decided:** grades 1 to 6 and 10 to 12. They have their own Ministry documents and are not read yet.
+
+## 2026-10-03: The product is a tutor. The family coaching side is switched off
+
+The app is now a tutor for school-age learners who find school hard: lessons as games in the learner's own world, at their own pace. The first audience is ages 13 to 16 and the first subject is mathematics. The parent coaching side (Parent Coach, accommodation map, daily log, weekly summary) is switched off by the `Features:FamilyCoaching` setting. Its code, prompts, and evaluations are kept.
+
+The profile changes with it. It holds what the learner loves, what is hard in learning, and what helps. It holds no diagnosis or condition, nothing about anxiety or the family, and no medication. The interview has its own prompt, `learner-profile/v1`, which writes down the practical learning need and never the label.
+
+**Why:** founder's decision, after concluding that treatment is unfamiliar and restricted ground. A learning product is simpler in law, can be explained in a sentence, and can be tested with a few families quickly. It still serves the child who stays at home: they can keep learning without the app claiming to treat anything. Mental-health data about children is the most sensitive kind the app could hold; a profile of interests and learning needs is not.
+
+**What this reverses:** "Anxiety first", "Parent side is built first", and the place of the Parent Coach as the centre of the product. The decision that the app does not send families to therapy stays in force for the coaching module if it returns.
+
+**What stays:** parental consent, family isolation, encryption, name hiding, the crisis rules on any free text, the safety review of everything a model writes, and the rule that the mathematics is checked by code.
+
+**If the coaching module returns:** as a separate product, built with a child mental-health professional.
+
+**Still needed before real families use it:** a privacy and consent review for children's data, which is lighter than for health data and still required.
+
 ## 2026-10-03: The Tutor is built now, and it writes the world, not the game
 
 The teaching side is started ahead of the young person's check-in and calming tools, which were next in the build order. The first lesson is the Mixer lesson on fractions. The Tutor writes the world the game is set in, from the child's confirmed interests, once per lesson, and it is kept. It writes no numbers, checks no answers, and does not converse with the child. Shared games and chat between children are left for later.

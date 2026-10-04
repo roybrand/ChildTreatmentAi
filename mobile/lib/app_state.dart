@@ -11,13 +11,16 @@ class AppState extends ChangeNotifier {
   AppState(this.api);
 
   /// The version of the consent text the parent agrees to. Change it when the text changes.
-  static const consentVersion = 'draft-1';
+  static const consentVersion = 'draft-2';
 
   final ApiClient api;
 
   SessionStage stage = SessionStage.loading;
   List<Child> children = [];
   Child? child;
+
+  /// What the server has switched on. Until it answers, the app shows the tutor alone.
+  Features features = Features.tutor;
 
   /// True when the app signed the parent out after a stretch without activity, so the
   /// sign-in screen can say why.
@@ -31,6 +34,7 @@ class AppState extends ChangeNotifier {
     }
 
     try {
+      features = await api.features();
       children = await api.children();
       child = children.isEmpty ? null : children.first;
       _set(children.isEmpty ? SessionStage.needsChild : SessionStage.ready);

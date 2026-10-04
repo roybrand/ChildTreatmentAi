@@ -5,6 +5,7 @@ using ChildTreatment.Api.Planning;
 using ChildTreatment.Api.Safety;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 
 namespace ChildTreatment.Api.Tests;
 
@@ -37,7 +38,7 @@ public class ProfileAgentTests
         var outcome = await TestSupport.ProfileAgent(llm).RespondAsync(Context, [], "היא אוהבת לצייר");
 
         Assert.Equal(InterviewOutcomeKind.Reply, outcome.Kind);
-        Assert.Equal("profile-agent/v1", outcome.PromptVersion);
+        Assert.Equal("learner-profile/v1", outcome.PromptVersion);
         Assert.Equal(new ProposedItem(ProfileSection.StrengthsAndInterests, "[CHILD] אוהבת לצייר"), Assert.Single(outcome.Items));
         // The reviewer sees the notes too, since the parent is shown both.
         Assert.Contains("[CHILD] אוהבת לצייר", llm.ReviewRequests.Single().Messages[0].Text);
@@ -111,7 +112,7 @@ public class ProfileInterviewServiceTests
         await db.SaveChangesAsync();
 
         var service = new ProfileInterviewService(
-            db, TestSupport.ProfileAgent(llm), TestSupport.Rules(), clock, NullLogger<ProfileInterviewService>.Instance);
+            db, TestSupport.ProfileAgent(llm), TestSupport.Rules(), clock, Options.Create(new FeatureOptions()), NullLogger<ProfileInterviewService>.Instance);
         return new Arranged(service, db, child.Id, database);
     }
 
@@ -186,7 +187,7 @@ public class ProfileInterviewServiceTests
         await using var otherDb = TestSupport.Db(arranged.Database, Guid.NewGuid());
         var otherService = new ProfileInterviewService(
             otherDb, TestSupport.ProfileAgent(llm), TestSupport.Rules(), TestSupport.Clock(),
-            NullLogger<ProfileInterviewService>.Instance);
+            Options.Create(new FeatureOptions()), NullLogger<ProfileInterviewService>.Instance);
 
         Assert.Null(await otherService.SendAsync(arranged.ChildId, "שלום"));
         Assert.Empty(llm.Requests);

@@ -2,122 +2,100 @@
 
 ## The problem
 
-Children and teens with anxiety often get too little help. Therapy is expensive, waiting lists are long, schools lack the training and time, and some children refuse to take part in therapy at all. Parents are left managing it alone, and the natural things they do to calm their child (reassuring again and again, speaking for them, avoiding the feared situation) relieve the moment but keep the anxiety going.
+Some children and teenagers do not fit the way school teaches. They fall behind, stop believing they can learn, and some stop going. The lessons they meet are built around nothing they care about, move at a pace that is not theirs, and mark every mistake.
 
 ## The idea
 
-Put the parent at the centre. Research on parent-led anxiety treatment shows that changing how the parent responds can reduce the child's anxiety, even when the child does not take part in treatment. The app coaches the parent through that process day by day, and gives the child or teen a small set of safe self-help tools.
+A tutor that teaches through games set in the learner's own world, at the learner's own pace.
 
-The app supports families. It is not therapy, does not diagnose, and does not replace a clinician. See [SAFETY.md](SAFETY.md).
+- **Their world.** A learner who loves cosmetics meets fractions by mixing a nail polish shade. A learner who loves football meets the same idea by mixing the team's drink. The app builds a profile of what each learner loves and sets every lesson in it.
+- **Games and pictures, not worksheets.** Each idea is a small game the learner plays, with the result visible on screen, and only afterwards the notation used in class.
+- **No pressure.** Nothing is marked wrong. There are no timers, no marks, and no comparison with anyone. A lesson can stop anywhere and resume later.
+- **Reliable.** The games are built and tested by hand, and code checks every number and every answer. The AI writes the story around the game. It never decides whether an answer is right.
+
+The app is a learning product. It is not therapy, does not diagnose, and does not replace a teacher or a clinician. See [SAFETY.md](SAFETY.md).
 
 ## Who it is for
 
-- **Parents** of a child or teen with anxiety. They are the customer and the main user.
-- **Children and teens** with anxiety, including those who also have ADHD or learning difficulties. The young person's side adapts to age.
-- Supported ages: school age, roughly 6 to 18. Teen mode starts at 12.
+- **Learners** of school age who find school hard, for whatever reason: learning feels impossible, lessons are too fast, or they are not at school at all. The first audience is ages 13 to 16.
+- **Parents**, who create the account, give consent, and see their child's learning progress.
 
-## Scope and vision
+A child's difficulty has many possible causes. The app does not ask which, and holds no diagnosis. It asks what the learner loves, what is hard in learning, and what helps.
 
-The first product treats anxiety only. The long-term vision is to help children who do not fit at school, with further programmes added one at a time. A child's other conditions, such as ADHD or learning difficulties, are recorded in their profile and shape the agent's tone and pacing, but the method stays anxiety treatment.
+## What the first version does
 
-## Parent side: the coaching agent
-
-The parent works with an AI coaching agent through a repeating cycle:
-
-1. **Map.** The agent helps the parent list everything the family does because of the child's anxiety (the accommodations).
-2. **Pick one.** The parent chooses a single accommodation to reduce, starting with something manageable.
-3. **Plan.** The agent drafts the exact words for telling the child about the change: calm, supportive, and not a punishment.
-4. **Daily log.** The parent records what happened, how the child reacted, and how they responded.
-5. **Coaching.** The agent reviews the log and helps the parent stay supportive without slipping back into accommodating.
-6. **Next step.** Once one accommodation is reduced, move to the next.
-
-Two principles run through every agent response:
-
-- **Supportive statements** combine acceptance with confidence: "I know this is really scary for you, and I know you can handle it."
-- **Reducing accommodation** is something the parent changes in their own behaviour. The parent never forces the child to do anything.
-
-The parent also gets:
-
-- A **brave ladder**: small, gradual steps toward hard things such as going outside, seeing a friend, or a school visit.
-- A **weekly summary** of patterns across the logs and the child's check-ins.
-
-## Young person's side
-
-The same tools exist for every age, but the presentation differs.
-
-| Tool | Child mode (younger) | Teen mode (older) |
+| Area | Feature | State |
 | --- | --- | --- |
-| Feelings check-in | Faces or colours, no words needed | Quick scale plus optional private note |
-| Calming tools | Animated breathing, favourite-place visualisation | Breathing, grounding exercises, short audio |
-| Brave steps | Steps from the ladder, each ending in a celebration | Steps the teen helps choose, with a plain progress view |
-| Lessons | Tutor lessons built around the child's interests | Same, pitched for teens |
-| Coping skills | Activities the parent and child do together | Guided exercises with the Skills Guide |
+| Account | Parent sign-up, consent, learner profiles, export and delete of all data | Built |
+| Profile | A short interview with the parent about what the learner loves, what is hard in learning, and what helps. Each item waits for the parent to accept it | Built |
+| Lessons | Fractions with the Mixer game, set by the Tutor in the learner's world | Built |
+| Practice | The Israeli curriculum for grades 7 to 9 by grade, topic, and sub-topic, with practice questions made and checked by code and a step-by-step solution for each | Built for 42 of 72 sub-topics |
+| Practice | Questions set in the learner's world, word problems, and questions about graphs and shapes | Next |
+| Practice | Grades 1 to 6 and 10 to 12 | Later |
+| Lessons | More game templates: a balance for equations, a hundred bar for percentages | Next |
+| Lessons | Hints and step-by-step explanations when a learner is stuck | Next |
+| Learner | The learner's own sign-in | Next |
+| Parent | A view of learning progress | Next |
+| Both | Emergency screen reachable from everywhere | Built |
 
-Teen mode has a different tone (no cartoon rewards) and different privacy rules: a teen needs to trust that private notes stay private. See [PRIVACY.md](PRIVACY.md).
+The first subject is mathematics, following the Israeli Ministry of Education's curriculum, starting with grades 7 to 9.
 
-Two agents speak with the young person, both in later phases and both inside a fixed structure: the **Tutor** teaches school material, and the **Skills Guide** teaches coping skills. Neither holds open-ended therapeutic conversation. See [AGENTS.md](AGENTS.md) and [SAFETY.md](SAFETY.md).
+## How a lesson works
 
-## All features
+1. **A real problem** from the learner's world.
+2. **Play.** The learner changes something on screen and sees what happens.
+3. **Discover.** The learner notices the rule.
+4. **Name it.** The lesson says what the rule is called and why people needed it.
+5. **Practise** with a few more cases in the same world.
+6. **Bridge to school.** The same idea in the notation used in class.
 
-| Area | Feature | Phase |
-| --- | --- | --- |
-| Parent | Onboarding interview that builds the child's profile | 1 |
-| Parent | Accommodation map | 1 |
-| Parent | Plan for reducing one accommodation, with the words to announce it | 1 |
-| Parent | Daily log | 1 |
-| Parent | Coaching conversation | 1 |
-| Parent | Weekly summary | 1 |
-| Parent | Optional reflection on the parent's own history and stress | 1 |
-| Parent | Brave ladder: build, approve steps, follow progress | 2 |
-| Parent | Decline alerts | 2 |
-| Young person | Feelings check-in | 2 |
-| Young person | Calming tools, available offline | 2 |
-| Young person | Brave steps | 2 |
-| Young person | "About me" profile a teen can view and edit | 2 |
-| Young person | Lessons with the Tutor | 3 |
-| Young person | Coping skills programme with the Skills Guide | 4 |
-| Both | Plan that adapts to what is happening | 2 onward |
-| Both | Crisis screen reachable from everywhere | 1 |
-| Both | Export and delete all data | 1 |
+The first lesson and the learning path are in [TUTOR_LESSONS.md](TUTOR_LESSONS.md).
 
-## Safety behaviour visible to users
+## What sets it apart
 
-- If check-ins show a sharp decline, the app alerts the parent.
-- The app never tries to handle a crisis itself. It shows emergency contacts and directs the family to human help.
+AI tutors are a crowded field. This one is built from the experience of a child who did not fit school:
 
-## Out of scope for version 1
-
-- Open-ended therapeutic chat for the child or teen. This is out of scope permanently, not only for version 1
-- Care-team hub (inviting teachers, counsellors, therapists)
-- School or municipality integrations
-- Parent-to-parent community or chat
+- Nothing is marked wrong, nothing is timed, nothing is ranked.
+- The lesson is in the learner's world, with a real link between that world and the idea, not a theme pasted on.
+- The mathematics is checked by code, so it is never wrong.
 
 ## Later ideas
 
-- **Games children play together, with chat.** Proposed by the founder on 2026-10-03: children in the app play shared games and talk, so that they build friendships and confidence. Not designed yet. Putting children in contact with each other needs its own safety and privacy design before any of it is built: who can meet whom, what a parent sees and approves, how messages are checked, and what the law requires for minors.
+- **Games built in the background.** An AI workflow that proposes new games for a skill, generates them, runs automated checks on the mathematics, the code, and the content, and puts the ones that pass in a queue for review. Learners only ever see a published, tested game. This comes after two or three games built by hand have shown what a good one looks like.
+- **Games learners play together, with chat.** So that learners build friendships and confidence. Putting children in contact with each other needs its own safety and privacy design first: who can meet whom, what a parent sees and approves, how messages are checked, and what the law requires for minors.
+- **Family coaching for anxiety.** A parent coaching module was built first and is switched off. See below.
+- **More subjects:** English, physics.
+
+## The family coaching module, switched off
+
+The project began as an app for families of children with anxiety, coaching the parent with the principles of parent-led anxiety treatment. That part is built: a Parent Coach, an accommodation map, a daily log, and a weekly summary. It is switched off by a setting and its code is kept. If it returns, it returns as a separate product, built with a child mental-health professional. The reasons are in [DECISIONS.md](DECISIONS.md), and its design is in [AGENTS.md](AGENTS.md) and [SAFETY.md](SAFETY.md).
+
+## Out of scope
+
+- Open-ended conversation between an AI and a child about feelings. Permanently
+- Diagnosing, or holding diagnoses
+- School or municipality integrations
 
 ## Where it runs
 
 - A phone app for Android and iOS, and the same app in a browser on a phone, a tablet, or a computer.
-- Both the parent's side and the young person's side work in the browser. Lessons in particular are expected on a tablet or a computer.
-- Reminders and safety alerts come through the phone app.
-
-## Build order
-
-Four phases: parent coaching, then the young person's basic tools, then the Tutor, then the Skills Guide. The parent side comes first because it is the part with research support, and a parent can use it alone from day one. The phases are set out in [AGENTS.md](AGENTS.md).
-
-The care-team hub was the first idea explored and remains a likely later addition.
+- Lessons are expected mostly on a tablet or a computer.
 
 ## Business model
 
-- Sold to parents as a monthly subscription. Earlier estimate: about ₪30–50 a month. Not validated.
+- Sold to parents as a monthly subscription. The price is not set and not validated.
 - Possible later channel: schools and municipalities, once there is usage data.
 
 ## Language and market
 
 - Hebrew and right-to-left from day one. First market is Israel.
-- User-facing text describes the method as "based on research on parent-led anxiety treatment". It does not use the name of any published programme.
 
 ## How we will know it works
 
-Not yet defined. Candidates: parents completing the daily log, number of accommodations reduced, change in check-in trend over 8–12 weeks, subscription retention.
+Tested with a small group of families before anything else is built on top:
+
+- Learners come back for another lesson without being told to
+- A learner can do the school-notation questions at the end of a lesson
+- Parents say they would pay
+
+There is no honest way to predict success or revenue before that test.
