@@ -394,7 +394,10 @@ class PracticeCheck {
 
 /// What a picture of a solution shows, as numbers worked out by the server. The app only draws them.
 class SolutionVisual {
-  const SolutionVisual({required this.kind, required this.numbers});
+  const SolutionVisual({required this.kind, required this.numbers, this.labels = const []});
+
+  /// Names for the parts of the picture, when it has named parts: the two sides of a share.
+  final List<String> labels;
 
   /// shelves: two shelves with numbers[0] and numbers[1] groups of numbers[2] things each.
   /// percent: numbers[0] percent of numbers[1] is numbers[2].
@@ -404,6 +407,7 @@ class SolutionVisual {
   factory SolutionVisual.fromJson(Map<String, dynamic> json) => SolutionVisual(
         kind: json['kind'] as String,
         numbers: (json['numbers'] as List<dynamic>).cast<int>(),
+        labels: ((json['labels'] as List<dynamic>?) ?? const []).cast<String>(),
       );
 }
 

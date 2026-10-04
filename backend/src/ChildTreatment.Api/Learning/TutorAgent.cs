@@ -62,7 +62,7 @@ public sealed record LessonWorld(
         "כל מי שמערבב משהו, צבע, מתכון או משקה, צריך לדעת להכין את אותו דבר שוב בכמות אחרת. " +
         "שבר הוא הדרך לכתוב כמה מתוך השלם, כך שזה יעבוד בכל גודל.",
         "🎨", "🧑‍🎨", "jar", "בדיוק אותו צבע. תודה!",
-        "פחיות צבע", "טוב לראות אותך בסדנה.", "🎨🖌️🖍️✨🌈");
+        "פחיות צבע, מכחולים, בדי ציור, גלילי צבע", "טוב לראות אותך בסדנה.", "🎨🖌️🖍️✨🌈");
 }
 
 /// <summary>What the Tutor knows about the child. All text is already pseudonymized.</summary>
@@ -172,14 +172,18 @@ public sealed partial class TutorAgent(
         string[] names =
         [
             world.World, world.IngredientA.Name, world.IngredientB.Name,
-            world.SmallLabel, world.BigLabel, world.ResultWord, world.Items,
+            world.SmallLabel, world.BigLabel, world.ResultWord,
         ];
+        // The things made or sold in the world: a short list, separated by commas.
+        var things = world.Items.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
         if (sentences.Any(s => s.Length is 0 or > MaxSentence) || names.Any(n => n.Length is 0 or > MaxName))
             return "A text is missing or too long.";
         // The game shows every number itself, so a digit in the wording could contradict it.
         if (sentences.Concat(names).Any(t => t.Any(char.IsDigit)))
             return "The wording contains a digit.";
+        if (things.Length is 0 or > 6 || things.Any(t => t.Length > MaxName || t.Any(char.IsDigit)))
+            return "The list of things is missing, too long, or holds a digit.";
         if (!HexColor().IsMatch(world.IngredientA.Color) || !HexColor().IsMatch(world.IngredientB.Color))
             return "A colour is not a hex code.";
         if (ColorDistance(world.IngredientA.Color, world.IngredientB.Color) < MinColorDistance)

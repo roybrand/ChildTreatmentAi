@@ -13,6 +13,7 @@ public sealed record LessonView(
 public sealed class LessonService(
     AppDbContext db,
     TutorAgent tutor,
+    PromptStore prompts,
     CrisisRules crisisRules,
     TimeProvider time,
     ILogger<LessonService> logger)
@@ -38,9 +39,9 @@ public sealed class LessonService(
         // A lesson that opened in the built-in world before the Tutor was ever asked, because the profile
         // had no interests yet, gets its own world once there is something to build one from.
         var neverAsked = lesson is { FromTutor: false, PromptVersion: null } && await HasInterestsAsync(childId, ct);
-        // A world written before the welcome page and the story questions existed lacks what they need,
-        // so it is written once more.
-        var incomplete = lesson is { FromTutor: true } && !lesson.World.Contains("\"items\"", StringComparison.Ordinal);
+        // A world written by an earlier version of the Tutor's prompt is written once more by the current
+        // one. Only once: the new world carries the current version, whether or not the Tutor's text was used.
+        var incomplete = lesson is { FromTutor: true } && lesson.PromptVersion != prompts.Get(TutorAgent.AgentName).Version;
         if (lesson is not null && !newWorld && !neverAsked && !incomplete)
             return ToView(lesson);
 

@@ -101,7 +101,7 @@ public static class AgentEndpoints
             if (world is null)
                 return Results.NotFound();
             var questions = curriculum.Questions(
-                subtopicId, Math.Clamp(count ?? 5, 1, 10), Random.Shared, new Story(world.World, world.Items), easy ?? false);
+                subtopicId, Math.Clamp(count ?? 5, 1, 10), Random.Shared, Story.From(world.World, world.Items), easy ?? false);
             return questions is null ? Results.NotFound() : Results.Ok(questions);
         });
 

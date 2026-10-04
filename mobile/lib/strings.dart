@@ -185,12 +185,13 @@ class Strings {
   static const practiceGo = 'תרגול';
 
   // Pictures of a solution. Every number is passed in by code.
-  static const shelfFirst = 'המדף הראשון';
-  static const shelfSecond = 'המדף השני';
+  static const shelfFirst = 'הראשון';
+  static const shelfSecond = 'השני';
   static String shelfLabel(String shelf, int perRound, int rounds, int things) =>
       '$shelf: $perRound בכל סיבוב, $rounds סיבובים, ביחד $things';
-  static String shelvesCaption(int first, int second, int rounds) =>
-      'בכל סיבוב מניחים $first על המדף הראשון ו-$second על המדף השני. המספר שמעל כל קבוצה הוא מספר הסיבוב.';
+  static String shelvesCaption(int first, String firstName, int second, String secondName) =>
+      // The names stand alone, with no prefix joined to them, so any name reads correctly.
+      'בכל סיבוב: $firstName $first, $secondName $second. המספר שמעל כל קבוצה הוא מספר הסיבוב.';
   static String percentCaption(int percent, int whole, int part) => '$percent מכל 100. מתוך $whole זה $part.';
   static const treeGrade = 'הכיתה';
   static const treeSubject = 'המקצוע';

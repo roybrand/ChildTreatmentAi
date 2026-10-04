@@ -2,6 +2,14 @@
 
 Newest first. Each entry records what was decided and why. To reverse a decision, add a new entry; do not edit the old one.
 
+## 2026-10-04: The learner's world is wide, and questions are real situations in it
+
+The world a lesson and its questions are set in is the whole field a learner's interest belongs to: beauty, with its nails, hair, make-up, and clothes, and not a nail polish stand. The Tutor names several different things sold in that world, and each story question uses one of them. A question's story is a situation someone running such a place would really meet: a delivery, an order, a discount, tips. When a first explanation does not land, the second one uses a different example from the same world of work.
+
+**Why:** founder's decision. One product makes every question the same question, and a made-up task, such as placing bottles on two shelves in a ratio, teaches that mathematics is something done for its own sake. A real situation answers "why do I need this".
+
+**Cost of this choice:** a new version of the Tutor's prompt, which has to pass its evaluation, and one more Tutor call for each learner whose world was written by the earlier version.
+
 ## 2026-10-04: The skill map follows the Israeli curriculum, and practice questions are made by code
 
 The tutor follows the Ministry of Education's mathematics curriculum. Grades 7 to 9 are in the project as data, in `curriculum/math-il.json`: each grade's topics with their teaching hours and order, taken from the Ministry's curriculum document, and under each topic its sub-topics. A sub-topic names the code that makes its practice questions. Questions, their answers, and their step-by-step explanations are all made and checked by code, with exact arithmetic. No model is involved.

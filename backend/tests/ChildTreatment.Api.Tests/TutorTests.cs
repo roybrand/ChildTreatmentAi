@@ -14,7 +14,7 @@ public class TutorTests
         {"world":"סטודיו ללק","scene":"{{scene}}","request":"לקוחה רוצה בקבוק גדול, בדיוק באותו גוון.",
          "ingredient_a":{"name":"ורוד","color":"#e85d9a"},"ingredient_b":{"name":"לבן","color":"{{colorB}}"},
          "small_label":"הבקבוק הקטן","big_label":"הבקבוק הגדול","result_word":"הגוון",
-         "why_needed":"כל מי שמערבב משהו צריך לדעת להכין אותו שוב בגודל אחר.","emoji":"💅","customer":"👩","container":"bottle","thanks":"בדיוק הגוון שרציתי!","items":"בקבוקי לק","greeting":"הסטודיו שלך מחכה.","decor":"💅💄✨","link":"Mixing polish is a real proportion."}
+         "why_needed":"כל מי שמערבב משהו צריך לדעת להכין אותו שוב בגודל אחר.","emoji":"💅","customer":"👩","container":"bottle","thanks":"בדיוק הגוון שרציתי!","items":"בקבוקי לק, שמפו, שפתונים","greeting":"הסטודיו שלך מחכה.","decor":"💅💄✨","link":"Mixing polish is a real proportion."}
         """;
 
     private sealed record Arranged(LessonService Service, AppDbContext Db, Guid ChildId, string Database);
@@ -49,7 +49,7 @@ public class TutorTests
         await db.SaveChangesAsync();
 
         var service = new LessonService(
-            db, TestSupport.Tutor(llm), TestSupport.Rules(), clock, NullLogger<LessonService>.Instance);
+            db, TestSupport.Tutor(llm), TestSupport.Prompts(), TestSupport.Rules(), clock, NullLogger<LessonService>.Instance);
         return new Arranged(service, db, child.Id, database);
     }
 
@@ -165,7 +165,7 @@ public class TutorTests
 
         await using var otherDb = TestSupport.Db(arranged.Database, Guid.NewGuid());
         var otherService = new LessonService(
-            otherDb, TestSupport.Tutor(llm), TestSupport.Rules(), TestSupport.Clock(), NullLogger<LessonService>.Instance);
+            otherDb, TestSupport.Tutor(llm), TestSupport.Prompts(), TestSupport.Rules(), TestSupport.Clock(), NullLogger<LessonService>.Instance);
 
         Assert.Null(await otherService.GetAsync(arranged.ChildId, LessonService.FractionsMixer));
         Assert.Null(await arranged.Service.GetAsync(arranged.ChildId, "no-such-lesson"));

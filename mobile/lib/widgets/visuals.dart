@@ -16,7 +16,15 @@ class SolutionPicture extends StatelessWidget {
   Widget build(BuildContext context) {
     final n = visual.numbers;
     return switch (visual.kind) {
-      'shelves' when n.length == 3 => _Shelves(first: n[0], second: n[1], perGroup: n[2], world: world),
+      'shelves' when n.length == 3 => _Shelves(
+          first: n[0],
+          second: n[1],
+          perGroup: n[2],
+          // The two sides are named by the question: two products, or two kinds of one.
+          firstName: visual.labels.length == 2 ? visual.labels[0] : Strings.shelfFirst,
+          secondName: visual.labels.length == 2 ? visual.labels[1] : Strings.shelfSecond,
+          world: world,
+        ),
       'percent' when n.length == 3 => _Percent(percent: n[0], whole: n[1], part: n[2], world: world),
       // A picture this version of the app does not know how to draw is left out.
       _ => const SizedBox.shrink(),
@@ -71,8 +79,17 @@ double _arrived(double t, int index, int count) {
 /// second, as the ratio says. The rounds arrive one after another, on both shelves together, so the
 /// learner sees the dealing out. [perGroup] is the number of rounds.
 class _Shelves extends StatelessWidget {
-  const _Shelves({required this.first, required this.second, required this.perGroup, required this.world});
+  const _Shelves({
+    required this.first,
+    required this.second,
+    required this.perGroup,
+    required this.firstName,
+    required this.secondName,
+    required this.world,
+  });
 
+  final String firstName;
+  final String secondName;
   final int first;
   final int second;
   final int perGroup;
@@ -130,12 +147,12 @@ class _Shelves extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        shelf(Strings.shelfFirst, first, _a(world)),
+        shelf(firstName, first, _a(world)),
         const SizedBox(height: 22),
-        shelf(Strings.shelfSecond, second, _b(world)),
+        shelf(secondName, second, _b(world)),
         const SizedBox(height: 12),
         Text(
-          Strings.shelvesCaption(first, second, rounds),
+          Strings.shelvesCaption(first, firstName, second, secondName),
           style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
           textAlign: TextAlign.center,
         ),

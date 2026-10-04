@@ -64,7 +64,21 @@ public sealed record Line(string Text, string? Math = null);
 /// as a plural noun. The sentences around them are written in code so that they stay grammatical
 /// whatever the noun: no verb or adjective in them agrees with it.
 /// </summary>
-public sealed record Story(string Place, string Items);
+public sealed record Story(string Place, IReadOnlyList<string> Things)
+{
+    /// <summary>Reads the things from the world's list, which separates them with commas.</summary>
+    public static Story From(string place, string items)
+    {
+        var things = items.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return new Story(place, things.Length == 0 ? ["מוצרים"] : things);
+    }
+
+    /// <summary>
+    /// One of the things, chosen by a number taken from the question itself, so questions vary across the
+    /// world and the same question always names the same thing.
+    /// </summary>
+    public string Thing(int key) => Things[Math.Abs(key) % Things.Count];
+}
 
 /// <summary>One question. Every number in it, its answer, and its explanation are made by code.</summary>
 /// <param name="More">A second explanation, told another way, for a learner the first one did not reach.</param>
@@ -77,7 +91,8 @@ public sealed record Question(
 /// </summary>
 /// <param name="Kind">shelves: two shelves holding Numbers[0] and Numbers[1] groups of Numbers[2] things each.
 /// percent: Numbers[0] percent of Numbers[1] is Numbers[2].</param>
-public sealed record Visual(string Kind, IReadOnlyList<int> Numbers);
+/// <param name="Labels">Names for the parts of the picture, when it has named parts: the two sides of a share.</param>
+public sealed record Visual(string Kind, IReadOnlyList<int> Numbers, IReadOnlyList<string>? Labels = null);
 
 /// <summary>
 /// Makes questions for the sub-topics of the curriculum. A question is rebuilt from its generator's
@@ -196,7 +211,7 @@ public static class QuestionBank
             return Q(
                 w is null
                     ? $"תיבה שממדיה {a} ס\"מ, {b} ס\"מ ו-{c} ס\"מ. מהו נפחה בסמ\"ק?"
-                    : $"קופסת משלוח של {w.Items} מ{w.Place}: ממדיה {a} ס\"מ, {b} ס\"מ ו-{c} ס\"מ. מהו נפח הקופסה בסמ\"ק?",
+                    : $"קופסת משלוח של {w.Thing(a)} מ{w.Place}: ממדיה {a} ס\"מ, {b} ס\"מ ו-{c} ס\"מ. מהו נפח הקופסה בסמ\"ק?",
                 null, a * b * c,
                 new Line("נפח תיבה הוא מכפלת שלושת הממדים.", $"{a}·{b}·{c} = {a * b * c}"));
         },
@@ -214,7 +229,8 @@ public static class QuestionBank
             return Q(
                 w is null
                     ? "פתרו את המשוואה. מהו x?"
-                    : $"הזמנה מ{w.Place}: {a} {w.Items} ועוד {b} שקלים דמי משלוח, יחד {a * x + b} שקלים. מה המחיר ליחידה? במשוואה, x הוא המחיר ליחידה.",
+                    // Packing into boxes, and not a price: a unit price of a few shekels would be absurd.
+                    : $"ב{w.Place} אורזים {w.Thing(a)} למשלוח: {a} קופסאות מלאות, ועוד {b} מחוץ לקופסאות, יחד {a * x + b}. כמה יש בכל קופסה? במשוואה, x הוא המספר בכל קופסה.",
                 $"{a}·x + {b} = {a * x + b}", x,
                 new Line($"מחסרים {b} משני האגפים.", $"{a}·x = {a * x}"),
                 new Line($"מחלקים את שני האגפים ב-{a}.", $"x = {x}"));
@@ -287,10 +303,18 @@ public static class QuestionBank
         ["ratio-share"] = (r, w) =>
         {
             int a = R(r, 1, 5), b = R(r, 1, 5), k = R(r, 2, 12), total = (a + b) * k;
+            // Two situations from running the place: a delivery of two different products, or one product
+            // ordered in two kinds by what customers buy. Which one is decided by the numbers, so the same
+            // question always reads the same.
+            var twoProducts = w is { Things.Count: >= 2 } && (a + b + k) % 2 == 0;
+            var first = w is null ? "הראשון" : twoProducts ? w.Thing(a) : "הסוג הראשון";
+            var second = w is null ? "השני" : twoProducts ? w.Thing(a + 1) : "הסוג השני";
             return Q(
                 w is null
                     ? $"מחלקים {total} שקלים בין שניים ביחס {a}:{b}. כמה שקלים מקבל הראשון?"
-                    : $"ב{w.Place} מסדרים {total} {w.Items} על שני מדפים, ביחס {a}:{b}. כמה יהיו על המדף הראשון?",
+                    : twoProducts
+                        ? $"ל{w.Place} הגיע משלוח של {total} מוצרים: {first} ו{second}, ביחס {a}:{b}. כמה {first} הגיעו?"
+                        : $"ב{w.Place} מזמינים {total} {w.Thing(k)} בשני סוגים. הלקוחות קונים {a} מהסוג הראשון על כל {b} מהסוג השני, אז מזמינים באותו יחס. כמה להזמין מהסוג הראשון?",
                 null, a * k,
                 // Told as dealing out in rounds, which a learner can picture. "Equal parts" was not clear.
                 new Line($"היחס {a}:{b} אומר: בכל פעם שהראשון מקבל {a}, השני מקבל {b}."),
@@ -298,13 +322,17 @@ public static class QuestionBank
                 new Line($"כמה סיבובים צריך עד שכל ה-{total} מחולקים?", $"{total} : {a + b} = {k}"),
                 new Line($"הראשון מקבל {a} בכל סיבוב, ויש {k} סיבובים.", $"{a}·{k} = {a * k}")) with
             {
-                Visual = new Visual("shelves", [a, b, k]),
-                // A second way, slower: the rounds one by one, with the running total, until everything is dealt.
+                Visual = new Visual("shelves", [a, b, k], [first, second]),
+                // A second explanation, with a different example: the same sum, about something else that
+                // matters in a business. A learner the first example did not reach gets a fresh way in.
                 More =
                 [
-                    new Line("אפשר גם בלי חילוק: מחלקים סיבוב אחרי סיבוב, וסופרים כמה כבר חולק."),
-                    .. Enumerable.Range(1, k).Select(i => new Line($"סיבוב {i}:", $"{a * i} + {b * i} = {(a + b) * i}")),
-                    new Line($"בסיבוב {k} הגענו בדיוק ל-{total}, אז עוצרים. הראשון קיבל עד עכשיו:", $"{a * k}"),
+                    new Line("ננסה דוגמה אחרת, מהעבודה עצמה: שתי עובדות מתחלקות בטיפים לפי שעות העבודה."),
+                    new Line($"הטיפים: {total} שקלים. שעות העבודה של הראשונה: {a}. של השנייה: {b}."),
+                    new Line("על כל שעת עבודה מגיע אותו סכום. כמה שעות עבדו שתיהן יחד?", $"{a} + {b} = {a + b}"),
+                    new Line("כמה שקלים מגיעים על כל שעה?", $"{total} : {a + b} = {k}"),
+                    new Line("הראשונה מקבלת את הסכום הזה על כל שעה שעבדה.", $"{a}·{k} = {a * k}"),
+                    new Line("זה בדיוק אותו חשבון כמו בשאלה. שם המספרים היו של מוצרים, וכאן של שקלים."),
                 ],
             };
         },
@@ -314,7 +342,8 @@ public static class QuestionBank
             return Q(
                 w is null
                     ? "מצאו את x בפרופורציה."
-                    : $"ב{w.Place}, עבור {b} שקלים מקבלים {a} {w.Items}. כמה {w.Items} מקבלים עבור {b * k} שקלים?",
+                    // A rate of selling, and not a price: with these small numbers a price would be absurd.
+                    : $"ב{w.Place} מוכרים {a} {w.Thing(b)} ב-{b} ימים. באותו קצב, כמה מוכרים ב-{b * k} ימים?",
                 $"{a} : {b} = x : {b * k}", a * k,
                 new Line($"המספר השני הוכפל ב-{k}.", $"{b}·{k} = {b * k}"),
                 new Line("כדי שהיחס יישמר, מכפילים גם את המספר הראשון באותו מספר.", $"x = {a}·{k} = {a * k}"));
@@ -352,7 +381,7 @@ public static class QuestionBank
             return Q(
                 w is null
                     ? $"כמה הם {p}% מתוך {n}?"
-                    : $"ב{w.Place} יש {n} {w.Items}, ו-{p}% כבר נמכרו. כמה נמכרו?",
+                    : $"ב{w.Place} יש {n} {w.Thing(n / 20)}, ו-{p}% כבר נמכרו. כמה נמכרו?",
                 null, n * p / 100,
                 new Line("אחוז הוא חלק ממאה: מכפילים באחוז ומחלקים ב-100.", $"{n}·{p} : 100 = {n * p / 100}")) with { Visual = new Visual("percent", [p, n, n * p / 100]) };
         },
@@ -362,7 +391,7 @@ public static class QuestionBank
             return Q(
                 w is null
                     ? $"מחיר של מוצר הוא {n} שקלים. הוא מוזל ב-{p}%. מהו המחיר אחרי ההוזלה?"
-                    : $"ב{w.Place}, חבילה של {w.Items} עולה {n} שקלים. היום יש הנחה של {p}%. מה המחיר אחרי ההנחה?",
+                    : $"ב{w.Place}, חבילה של {w.Thing(n / 20)} עולה {n} שקלים. היום יש הנחה של {p}%. מה המחיר אחרי ההנחה?",
                 null, n - n * p / 100,
                 new Line("מחשבים את גודל ההוזלה.", $"{n}·{p} : 100 = {n * p / 100}"),
                 new Line("מחסרים אותה מהמחיר.", $"{n} {M} {n * p / 100} = {n - n * p / 100}")) with { Visual = new Visual("percent", [p, n, n * p / 100]) };
@@ -385,7 +414,7 @@ public static class QuestionBank
             return Q(
                 w is null
                     ? $"מהו הממוצע של המספרים: {string.Join(", ", numbers)}?"
-                    : $"ב{w.Place} רשמו כמה {w.Items} נמכרו בכל יום: {string.Join(", ", numbers)}. מה הממוצע ליום?",
+                    : $"ב{w.Place} רשמו כמה {w.Thing(mean)} נמכרו בכל יום: {string.Join(", ", numbers)}. מה הממוצע ליום?",
                 null, mean,
                 new Line("מחברים את כל המספרים.", $"{string.Join(" + ", numbers)} = {numbers.Sum()}"),
                 new Line($"מחלקים במספר המספרים, {count}.", $"{numbers.Sum()} : {count} = {mean}"));

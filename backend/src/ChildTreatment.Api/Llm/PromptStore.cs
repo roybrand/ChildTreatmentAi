@@ -16,7 +16,7 @@ public sealed class PromptOptions
         ["safety-review"] = "v2",
         ["summary-review"] = "v1",
         ["review-retry"] = "v1",
-        ["tutor"] = "v1",
+        ["tutor"] = "v2",
         ["lesson-review"] = "v1",
     };
 }

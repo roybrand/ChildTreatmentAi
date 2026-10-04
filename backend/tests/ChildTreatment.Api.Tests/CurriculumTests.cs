@@ -103,7 +103,7 @@ public class CurriculumTests
     [Fact]
     public void A_question_told_as_a_story_has_the_same_numbers_answer_and_steps_as_the_plain_one()
     {
-        var story = new Story("סטודיו לק ג'ל", "בקבוקי לק");
+        var story = Story.From("סטודיו יופי", "בקבוקי לק, שמפו, שפתונים");
         foreach (var generator in QuestionBank.Generators)
         {
             for (var seed = 0; seed < 100; seed++)
@@ -156,11 +156,10 @@ public class CurriculumTests
             var total = int.Parse(System.Text.RegularExpressions.Regex.Match(share.Ask.Text, @"\d+").Value);
             Assert.Equal(total, (s[0] + s[1]) * s[2]);
 
-            // The second explanation deals out round by round and ends on the whole amount and the answer.
-            var rounds = share.More!.Where(l => l.Text.StartsWith("סיבוב")).ToList();
-            Assert.Equal(s[2], rounds.Count);
-            Assert.EndsWith($"= {total}", rounds[^1].Math);
-            Assert.Equal(share.Answer.ToString(), share.More![^1].Math);
+            // The second explanation is another example with the same numbers, and reaches the same answer.
+            Assert.Contains(share.More!, l => l.Text.Contains(total.ToString()));
+            Assert.Contains(share.More!, l => l.Math is not null && l.Math.EndsWith($"= {share.Answer}"));
+            Assert.Equal(2, share.Visual.Labels!.Count);
 
             // Percent: the part drawn is the percent of the whole.
             var percent = QuestionBank.Make("percent-of", seed);
