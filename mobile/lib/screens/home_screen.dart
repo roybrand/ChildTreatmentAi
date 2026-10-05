@@ -39,6 +39,9 @@ class _HomeScreenState extends State<HomeScreen> {
   // The learner's world, shared by the welcome page and the topic map. Null while it is being prepared.
   LessonWorld? _world;
 
+  // The people and the English words of that world. Null until read, and the pages work without it.
+  WorldGuide? _guide;
+
   @override
   void initState() {
     super.initState();
@@ -56,6 +59,19 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } catch (_) {
       // The pages still work without a world, on a plain background.
+    }
+    // After the world, since the people and the words are written for it.
+    await _loadGuide();
+  }
+
+  Future<void> _loadGuide() async {
+    try {
+      final guide = await widget.state.api.worldGuide(widget.state.child!.id);
+      if (mounted) {
+        setState(() => _guide = guide);
+      }
+    } catch (_) {
+      // Without the guide the world's own figure greets, and there is no words game.
     }
   }
 
@@ -116,8 +132,10 @@ class _HomeScreenState extends State<HomeScreen> {
             api: api,
             child: child,
             world: _world,
+            guide: _guide,
             onLessonClosed: _loadWorld,
-            header: WelcomeHeader(api: api, child: child, world: _world, onWorldChanged: _loadWorld),
+            onWordsPlayed: _loadGuide,
+            header: WelcomeHeader(api: api, child: child, world: _world, guide: _guide, onWorldChanged: _loadWorld),
           ),
         ),
         (Icons.person_outline, Strings.tabProfile, ContentWidth(child: profile)),

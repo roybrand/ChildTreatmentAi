@@ -18,9 +18,17 @@ class PracticeScreen extends StatefulWidget {
     required this.api,
     required this.child,
     required this.world,
+    this.guide,
     this.header,
     this.onLessonClosed,
+    this.onWordsPlayed,
   });
+
+  /// The people and the English words of the learner's world, or null while they are being read.
+  final WorldGuide? guide;
+
+  /// Called after a game of words, since a wider circle may have opened.
+  final VoidCallback? onWordsPlayed;
 
   final ApiClient api;
   final Child child;
@@ -37,11 +45,16 @@ class PracticeScreen extends StatefulWidget {
 }
 
 class _PracticeScreenState extends State<PracticeScreen> {
-  static const _domains = ['number', 'algebra', 'geometry'];
-  static const _domainSymbols = {'algebra': '🔤', 'number': '🔢', 'geometry': '📐'};
+  // The order the areas of a subject are shown in. An area a subject does not have is skipped.
+  static const _domains = ['number', 'algebra', 'geometry', 'grammar'];
+  static const _domainSymbols = {'algebra': '🔤', 'number': '🔢', 'geometry': '📐', 'grammar': '✏️'};
 
-  List<CurriculumGrade>? _grades;
+  // Every subject's curriculum, and which subject and class are open.
+  List<CurriculumSubject>? _subjects;
+  int _subject = 0;
   int _grade = 0;
+
+  List<CurriculumGrade>? get _grades => _subjects?[_subject].grades;
 
   // How each sub-topic has gone so far, by its id. A sub-topic never tried is not in it.
   Map<String, SubtopicProgress> _progress = {};
@@ -66,11 +79,12 @@ class _PracticeScreenState extends State<PracticeScreen> {
 
   Future<void> _load() async {
     try {
-      final grades = await widget.api.curriculum();
+      final subjects = await widget.api.curriculum();
       if (mounted) {
         setState(() {
-          _grades = grades;
-          _grade = _ownGrade(grades);
+          _subjects = subjects;
+          _subject = 0;
+          _grade = _ownGrade(subjects[0].grades);
         });
       }
     } catch (e) {
@@ -96,11 +110,32 @@ class _PracticeScreenState extends State<PracticeScreen> {
   Future<void> _practise(Subtopic subtopic) async {
     await Navigator.of(context).push(
       MaterialPageRoute<void>(
-        builder: (_) => QuestionsScreen(api: widget.api, child: widget.child, world: widget.world, subtopic: subtopic),
+        builder: (_) => QuestionsScreen(
+          api: widget.api,
+          child: widget.child,
+          world: widget.world,
+          guide: widget.guide,
+          subtopic: subtopic,
+        ),
       ),
     );
     // What was just practised may have changed what is worth coming back to.
     await _loadProgress();
+  }
+
+  Future<void> _playWords(int circle) async {
+    await Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => QuestionsScreen(
+          api: widget.api,
+          child: widget.child,
+          world: widget.world,
+          guide: widget.guide,
+          circle: circle,
+        ),
+      ),
+    );
+    widget.onWordsPlayed?.call();
   }
 
   Future<void> _openLesson() async {
@@ -146,10 +181,11 @@ class _PracticeScreenState extends State<PracticeScreen> {
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              for (final grade in grades)
-                                for (final topic in grade.topics)
-                                  for (final subtopic in topic.subtopics)
-                                    if (subtopic.hasQuestions && (_progress[subtopic.id]?.comeBack ?? false))
+                              for (final subject in _subjects!)
+                                for (final grade in subject.grades)
+                                  for (final topic in grade.topics)
+                                    for (final subtopic in topic.subtopics)
+                                      if (subtopic.hasQuestions && (_progress[subtopic.id]?.comeBack ?? false))
                                       FilledButton.tonalIcon(
                                         onPressed: () => _practise(subtopic),
                                         icon: const Icon(Icons.replay),
@@ -186,13 +222,22 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     runSpacing: 8,
                     alignment: WrapAlignment.center,
                     children: [
-                      Chip(
-                        avatar: const Text('➗'),
-                        label: Text(Strings.subjectMath, style: theme.textTheme.titleMedium),
-                        backgroundColor: scheme.primaryContainer,
-                        side: BorderSide(color: scheme.primary, width: 1.5),
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                      ),
+                      for (var i = 0; i < _subjects!.length; i++)
+                        ChoiceChip(
+                          avatar: Text(Strings.subjects[_subjects![i].subject]?.$1 ?? '📘'),
+                          label: Text(
+                            Strings.subjects[_subjects![i].subject]?.$2 ?? _subjects![i].subject,
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          selected: i == _subject,
+                          showCheckmark: false,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          // Each subject opens on the learner's own class.
+                          onSelected: (_) => setState(() {
+                            _subject = i;
+                            _grade = _ownGrade(_subjects![i].grades);
+                          }),
+                        ),
                       for (final (symbol, name) in Strings.subjectsComing)
                         Chip(
                           avatar: Text(symbol),
@@ -206,6 +251,9 @@ class _PracticeScreenState extends State<PracticeScreen> {
                     ],
                   ),
                 ),
+                // English starts from the learner's own world, before any grammar.
+                if (_subjects![_subject].subject == 'english' && widget.guide != null)
+                  _WordsCard(guide: widget.guide!, world: widget.world, onPlay: _playWords),
                 // Level three: the topics of the subject, by area, each with its sub-topics.
                 for (final domain in _domains)
                   if (grades[_grade].topics.any((t) => t.domain == domain)) ...[
@@ -245,6 +293,92 @@ class _PracticeScreenState extends State<PracticeScreen> {
                 const SizedBox(height: 24),
                 Text(Strings.lessonsIntro, style: theme.textTheme.bodyMedium, textAlign: TextAlign.center),
               ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The English words of the learner's world: three circles, from the heart of the world outward.
+/// A circle that is not open yet is shown, so the way ahead is seen, with no lock and no count.
+class _WordsCard extends StatelessWidget {
+  const _WordsCard({required this.guide, required this.world, required this.onPlay});
+
+  final WorldGuide guide;
+  final LessonWorld? world;
+  final ValueChanged<int> onPlay;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 20),
+      child: Card(
+        elevation: 2,
+        color: scheme.primaryContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text('${world?.emoji ?? '🌍'} ${Strings.wordsTitle}', style: theme.textTheme.titleLarge),
+              const SizedBox(height: 2),
+              Text(Strings.wordsWhy, style: theme.textTheme.bodyMedium),
+              const SizedBox(height: 12),
+              for (var circle = 1; circle <= WorldGuide.circles; circle++)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsetsDirectional.fromSTEB(14, 10, 10, 10),
+                  decoration: BoxDecoration(
+                    color: circle <= guide.openCircle ? scheme.surface : scheme.surface.withValues(alpha: 0.45),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: circle <= guide.openCircle
+                      ? Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(Strings.wordsCircles[circle - 1], style: theme.textTheme.titleMedium),
+                                // The pictures of the circle's words, as a taste of what is inside.
+                                Text(
+                                  guide.words.where((w) => w.circle == circle).map((w) => w.emoji).join(' '),
+                                  style: const TextStyle(fontSize: 22),
+                                ),
+                              ],
+                            ),
+                            FilledButton.icon(
+                              key: ValueKey('words-$circle'),
+                              onPressed: () => onPlay(circle),
+                              icon: const Icon(Icons.play_arrow_rounded),
+                              label: const Text(Strings.wordsPlay),
+                            ),
+                          ],
+                        )
+                      : Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              Strings.wordsCircles[circle - 1],
+                              style: theme.textTheme.titleMedium?.copyWith(color: scheme.onSurfaceVariant),
+                            ),
+                            Text(
+                              Strings.wordsLater,
+                              style: theme.textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+                            ),
+                          ],
+                        ),
+                ),
             ],
           ),
         ),
@@ -355,22 +489,33 @@ class _SubtopicRow extends StatelessWidget {
   }
 }
 
-/// A short set of questions on one sub-topic, staged like a scene: a character from the learner's
-/// world asks, and reacts when the answer fits. Nothing is marked wrong: an answer that does not
-/// fit can be tried again, or the solution can be shown, step by step.
+/// A short set of questions on one sub-topic, or on one circle of the words of the learner's world,
+/// staged like a scene: the people of that world take turns asking, and react when the answer fits.
+/// Nothing is marked wrong: an answer that does not fit can be tried again, or the solution can be
+/// shown, step by step.
 class QuestionsScreen extends StatefulWidget {
   const QuestionsScreen({
     super.key,
     required this.api,
     required this.child,
     required this.world,
-    required this.subtopic,
-  });
+    this.guide,
+    this.subtopic,
+    this.circle,
+  }) : assert((subtopic == null) != (circle == null));
 
   final ApiClient api;
   final Child child;
   final LessonWorld? world;
-  final Subtopic subtopic;
+
+  /// The people who ask. Without them the world's own figure asks every question.
+  final WorldGuide? guide;
+
+  /// The sub-topic to practise, or null when the questions are on a circle of words.
+  final Subtopic? subtopic;
+
+  /// The circle of words to play in, or null when the questions are on a sub-topic.
+  final int? circle;
 
   @override
   State<QuestionsScreen> createState() => _QuestionsScreenState();
@@ -384,6 +529,20 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   bool _showSteps = false;
   bool _showMore = false;
   bool _busy = false;
+
+  // The name of a circle that opened while this set was played, to be told at its end.
+  String? _opened;
+
+  /// What the records of these questions are kept under.
+  String get _recordId => widget.subtopic?.id ?? 'en-words-${widget.circle}';
+
+  Future<List<PracticeQuestion>> _fetch({int? count, bool easy = false}) => widget.circle == null
+      ? widget.api.practice(widget.child.id, widget.subtopic!.id, count: count ?? 5, easy: easy)
+      : widget.api.words(widget.child.id, widget.circle!, count: count ?? 6);
+
+  Future<PracticeCheck> _checked(String questionId, String answer) => widget.circle == null
+      ? widget.api.checkAnswer(questionId, answer)
+      : widget.api.checkWord(widget.child.id, questionId, answer);
 
   @override
   void initState() {
@@ -400,11 +559,12 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   Future<void> _load() async {
     setState(() => _questions = null);
     try {
-      final questions = await widget.api.practice(widget.child.id, widget.subtopic.id);
+      final questions = await _fetch();
       if (mounted) {
         setState(() {
           _questions = questions;
           _index = 0;
+          _opened = null;
           _reset();
         });
       }
@@ -430,7 +590,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     }
     setState(() => _busy = true);
     try {
-      final check = await widget.api.checkAnswer(_questions![_index].id, text);
+      final check = await _checked(_questions![_index].id, text);
       if (mounted) {
         setState(() => _check = check);
       }
@@ -452,11 +612,24 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
     final question = questions[_index];
     final gotIt = (_check?.same ?? false) && !_showSteps;
     // Recorded quietly: a failed save must not interrupt the learner.
-    widget.api.recordPractice(widget.child.id, widget.subtopic.id, gotIt: gotIt).catchError((_) {});
+    final recorded = widget.api.recordPractice(widget.child.id, _recordId, gotIt: gotIt).catchError((_) {});
 
-    if (!gotIt && !_isEasy(question)) {
+    if (widget.circle != null) {
+      // At the end of a game of words, a wider circle may have opened. That is worth telling.
+      if (_index + 1 >= questions.length) {
+        try {
+          await recorded;
+          final now = await widget.api.worldGuide(widget.child.id);
+          if (now.openCircle > (widget.guide?.openCircle ?? WorldGuide.circles)) {
+            _opened = Strings.wordsCircles[now.openCircle - 1];
+          }
+        } catch (_) {
+          // The set ends the usual way.
+        }
+      }
+    } else if (!gotIt && !_isEasy(question)) {
       try {
-        final easier = await widget.api.practice(widget.child.id, widget.subtopic.id, count: 1, easy: true);
+        final easier = await _fetch(count: 1, easy: true);
         questions = [...questions.sublist(0, _index + 1), ...easier, ...questions.sublist(_index + 1)];
       } catch (_) {
         // Without the easier question the set simply goes on.
@@ -477,7 +650,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   Future<void> _showHow() async {
     try {
-      final shown = _check ?? await widget.api.checkAnswer(_questions![_index].id, '');
+      final shown = _check ?? await _checked(_questions![_index].id, '');
       if (mounted) {
         setState(() {
           _check = shown;
@@ -495,9 +668,14 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
   Widget build(BuildContext context) {
     final world = widget.world;
     final questions = _questions;
-    final face = world?.customer ?? '🙂';
-    // The cartoon figure who belongs to this world asks the questions.
-    final figure = figureFor(world?.world ?? '');
+    // The people of this world take turns asking. Until they are known, the world's own figure asks.
+    final people = widget.guide?.people ?? const <GuidePerson>[];
+    final person = people.isEmpty ? null : people[_index % people.length];
+    final face = person?.emoji ?? world?.customer ?? '🙂';
+    final figure = person == null
+        ? figureFor(world?.world ?? '')
+        : figureOf(world?.world ?? '', _index % people.length, person.emoji);
+    final name = person == null ? null : Strings.personCaption(person.name, person.role);
 
     // The stage is dark, so everything on it takes a dark theme in the colour of the learner's world.
     final stage = ThemeData(
@@ -523,7 +701,13 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Burst(symbols: world?.decor ?? '✨'),
-                  Character(face: face, figure: figure, says: Strings.practiceDone, lively: true),
+                  Character(
+                    face: face,
+                    figure: figure,
+                    name: name,
+                    says: _opened == null ? Strings.practiceDone : Strings.wordsNewCircle(_opened!),
+                    lively: true,
+                  ),
                   const SizedBox(height: 20),
                   FilledButton(onPressed: _load, child: const Text(Strings.practiceMore)),
                 ],
@@ -575,7 +759,12 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                 Character(
                   face: face,
                   figure: figure,
-                  says: solved ? (world?.thanks ?? Strings.practiceSame) : question.ask.text,
+                  name: name,
+                  // A different short line each time. The world's own thanks belongs to the mixing lesson,
+                  // where it is about the shade; said after every answer it would be wrong and tiresome.
+                  says: solved
+                      ? Strings.practiceCheers[question.id.hashCode.abs() % Strings.practiceCheers.length]
+                      : question.ask.text,
                   lively: solved,
                 ),
                 if (question.ask.math != null) ...[
@@ -583,6 +772,38 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   _Board(question.ask.math!, large: true),
                 ],
                 const SizedBox(height: 20),
+                if (question.choices.isNotEmpty)
+                  // A question with words to choose from: tapping one is the answer.
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      for (var i = 0; i < question.choices.length; i++)
+                        ChoiceChip(
+                          label: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                            child: Text(
+                              question.choices[i],
+                              // An English word reads left to right, a Hebrew meaning right to left.
+                              textDirection: RegExp('[א-ת]').hasMatch(question.choices[i])
+                                  ? TextDirection.rtl
+                                  : TextDirection.ltr,
+                              style: theme.textTheme.titleLarge,
+                            ),
+                          ),
+                          selected: _answer.text == '$i',
+                          showCheckmark: false,
+                          onSelected: solved || _busy
+                              ? null
+                              : (_) {
+                                  _answer.text = '$i';
+                                  _submit();
+                                },
+                        ),
+                    ],
+                  )
+                else
                 TextField(
                   controller: _answer,
                   // Numbers and expressions read left to right, also inside a Hebrew screen.
@@ -600,7 +821,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
                   onSubmitted: (_) => _submit(),
                 ),
                 const SizedBox(height: 12),
-                if (!solved)
+                if (!solved && question.choices.isEmpty)
                   FilledButton(
                     onPressed: _busy ? null : _submit,
                     style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
@@ -714,7 +935,7 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
             extendBodyBehindAppBar: true,
             appBar: AppBar(
               backgroundColor: Colors.transparent,
-              title: Text(widget.subtopic.title),
+              title: Text(widget.subtopic?.title ?? Strings.wordsCircles[widget.circle! - 1]),
               actions: const [CrisisButton()],
             ),
             body: Scene(

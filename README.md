@@ -7,7 +7,7 @@ A tutor for school-age learners who find school hard: lessons as games in the le
 | Folder | Contents |
 | --- | --- |
 | `docs/` | Product, architecture, agents, safety, privacy, status, decisions |
-| `curriculum/` | The Israeli mathematics curriculum for grades 7 to 9 as a skill map: grade, topic, sub-topic, and which code makes each sub-topic's questions |
+| `curriculum/` | The Israeli curriculum as a skill map, one file per subject (mathematics, English): grade, topic, sub-topic, and which code makes each sub-topic's questions |
 | `prompts/` | Agent prompts, each agent's scenario set and scoring guide, the crisis rules |
 | `backend/src/ChildTreatment.Api/` | The ASP.NET Core API |
 | `backend/tests/` | Tests. They use a fake model and need no network |

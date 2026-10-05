@@ -1,0 +1,144 @@
+{
+  "_about": "English as a foreign language in Israel, grades 5 to 9, as a skill map. The grammatical structures are taken from the tables of structures in the Ministry of Education's English Curriculum 2020, for elementary school (grades 4 to 6) and for junior high school (grades 7 to 9). The junior high document names which structures are new in each of grades 7, 8, and 9, and we follow it. The elementary document gives the structures for grades 4 to 6 as stages across the three years, so which of them sit under grade 5 and which under grade 6 here is our own split. Only grammar is covered: vocabulary, reading, listening, speaking, and writing are in the curriculum and not in this file. Hours are 0 because the curriculum gives none per structure. Sub-topic titles are ours.",
+  "subject": "english",
+  "country": "IL",
+  "source": {
+    "title": "English Curriculum 2020, for Elementary School and for Junior High School",
+    "publisher": "State of Israel, Ministry of Education, Pedagogical Secretariat, Inspectorate for English Language Education",
+    "url": "https://meyda.education.gov.il/files/Mazkirut_Pedagogit/English/CurriculumIntermediate2.pdf",
+    "read_on": "2026-10-05"
+  },
+  "grades": [
+    {
+      "grade": 5, "name": "כיתה ה", "hours": 0,
+      "topics": [
+        {
+          "id": "en5-be", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "הפועל to be בהווה", "title_en": "The verb 'to be' in the present",
+          "subtopics": [
+            { "id": "en5-be-forms", "title": "am, is, are", "title_en": "am, is, are", "generator": "en-to-be" },
+            { "id": "en5-there-is", "title": "There is, There are", "title_en": "There is, There are", "generator": "en-there-is" }
+          ]
+        },
+        {
+          "id": "en5-nouns", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "שמות עצם ותוויות", "title_en": "Nouns and articles",
+          "subtopics": [
+            { "id": "en5-articles", "title": "a או an", "title_en": "a or an", "generator": "en-articles" }
+          ]
+        },
+        {
+          "id": "en5-present-simple", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "Present Simple", "title_en": "Present simple",
+          "subtopics": [
+            { "id": "en5-present-simple-s", "title": "מתי מוסיפים s לפועל", "title_en": "When the verb takes an s", "generator": "en-present-simple" },
+            { "id": "en5-can", "title": "can ואחריו פועל", "title_en": "can + verb", "generator": "en-can" }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 6, "name": "כיתה ו", "hours": 0,
+      "topics": [
+        {
+          "id": "en6-progressive", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "Present Progressive", "title_en": "Present progressive",
+          "subtopics": [
+            { "id": "en6-progressive-now", "title": "מה קורה עכשיו", "title_en": "What is happening now", "generator": "en-present-progressive" }
+          ]
+        },
+        {
+          "id": "en6-past", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "Past Simple", "title_en": "Past simple",
+          "subtopics": [
+            { "id": "en6-was-were", "title": "was, were", "title_en": "was, were", "generator": "en-was-were" },
+            { "id": "en6-past-forms", "title": "פעלים בעבר, רגילים ומיוחדים", "title_en": "Regular and irregular past forms", "generator": "en-past-simple" }
+          ]
+        },
+        {
+          "id": "en6-possessive", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "שייכות", "title_en": "Ownership",
+          "subtopics": [
+            { "id": "en6-possessive-words", "title": "my, your, his, her, our, their", "title_en": "Possessive words", "generator": "en-possessive" }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 7, "name": "כיתה ז", "hours": 0,
+      "topics": [
+        {
+          "id": "en7-tenses", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "זמנים", "title_en": "Tenses",
+          "subtopics": [
+            { "id": "en7-simple-or-progressive", "title": "Present Simple או Present Progressive", "title_en": "Present simple or present progressive", "generator": "en-simple-or-progressive" },
+            { "id": "en7-past-negative", "title": "שלילה ושאלות בעבר", "title_en": "Past simple: negative and questions", "generator": "en-past-negative" },
+            { "id": "en7-going-to", "title": "going to לתוכניות לעתיד", "title_en": "'Going to' for future intentions", "generator": "en-going-to" },
+            { "id": "en7-will", "title": "will ואחריו פועל", "title_en": "will + verb", "generator": "en-will" }
+          ]
+        },
+        {
+          "id": "en7-describing", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "תיאור והשוואה", "title_en": "Describing and comparing",
+          "subtopics": [
+            { "id": "en7-comparative", "title": "השוואה בין שניים: er ו-more", "title_en": "Comparative adjectives", "generator": "en-comparative" },
+            { "id": "en7-superlative", "title": "הכי: est ו-most", "title_en": "Superlative adjectives", "generator": "en-superlative" },
+            { "id": "en7-adverbs", "title": "תואר הפועל: איך עושים", "title_en": "Adverbs of manner", "generator": "en-adverbs" },
+            { "id": "en7-much-many", "title": "much או many", "title_en": "Count and non-count nouns", "generator": "en-much-many" }
+          ]
+        },
+        {
+          "id": "en7-modals", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "פועלי עזר", "title_en": "Modal verbs",
+          "subtopics": [
+            { "id": "en7-should", "title": "should לעצה", "title_en": "'Should' for advice", "generator": "en-should" },
+            { "id": "en7-reported", "title": "דיווח על מה שמישהו אמר", "title_en": "Reporting what someone has said", "generator": null }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 8, "name": "כיתה ח", "hours": 0,
+      "topics": [
+        {
+          "id": "en8-past", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "עבר מתמשך והווה מושלם", "title_en": "Past progressive and present perfect",
+          "subtopics": [
+            { "id": "en8-past-progressive", "title": "Past Progressive", "title_en": "Past progressive", "generator": "en-past-progressive" },
+            { "id": "en8-present-perfect", "title": "Present Perfect: הצורה השלישית", "title_en": "Present perfect: the third form", "generator": "en-present-perfect" }
+          ]
+        },
+        {
+          "id": "en8-structures", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "מבנים", "title_en": "Structures",
+          "subtopics": [
+            { "id": "en8-passive", "title": "סביל בהווה ובעבר", "title_en": "Passive voice, present and past simple", "generator": "en-passive" },
+            { "id": "en8-gerund", "title": "Gerund: פועל עם ing כשם עצם", "title_en": "Gerund as subject or object", "generator": "en-gerund" },
+            { "id": "en8-noun-modifiers", "title": "שם עצם שמתאר שם עצם", "title_en": "Nouns as modifiers", "generator": null }
+          ]
+        }
+      ]
+    },
+    {
+      "grade": 9, "name": "כיתה ט", "hours": 0,
+      "topics": [
+        {
+          "id": "en9-conditions", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "משפטי תנאי", "title_en": "Conditions",
+          "subtopics": [
+            { "id": "en9-first-conditional", "title": "תנאי אמיתי", "title_en": "Real conditions", "generator": "en-first-conditional" },
+            { "id": "en9-second-conditional", "title": "תנאי דמיוני", "title_en": "Second condition", "generator": "en-second-conditional" }
+          ]
+        },
+        {
+          "id": "en9-past-habits", "domain": "grammar", "round": 1, "hours": 0,
+          "title": "הרגלים בעבר", "title_en": "Past habits",
+          "subtopics": [
+            { "id": "en9-used-to", "title": "used to", "title_en": "'Used to' for past habitual states or actions", "generator": "en-used-to" },
+            { "id": "en9-passive-perfect", "title": "סביל ב-Present Perfect", "title_en": "Passive voice, present perfect", "generator": null }
+          ]
+        }
+      ]
+    }
+  ]
+}

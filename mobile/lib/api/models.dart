@@ -340,6 +340,21 @@ class CurriculumGrade {
       );
 }
 
+/// One subject's curriculum: its grades, each with its topics.
+class CurriculumSubject {
+  const CurriculumSubject({required this.subject, required this.grades});
+
+  /// The server's name for the subject: mathematics, english.
+  final String subject;
+  final List<CurriculumGrade> grades;
+
+  factory CurriculumSubject.fromJson(Map<String, dynamic> json) => CurriculumSubject(
+        subject: json['subject'] as String? ?? 'mathematics',
+        grades:
+            (json['grades'] as List<dynamic>).map((g) => CurriculumGrade.fromJson(g as Map<String, dynamic>)).toList(),
+      );
+}
+
 /// A sentence, with an optional line of mathematics shown left to right under it.
 class MathLine {
   const MathLine({required this.text, this.math});
@@ -352,13 +367,19 @@ class MathLine {
 }
 
 class PracticeQuestion {
-  const PracticeQuestion({required this.id, required this.ask});
+  const PracticeQuestion({required this.id, required this.ask, this.choices = const []});
 
   final String id;
   final MathLine ask;
 
-  factory PracticeQuestion.fromJson(Map<String, dynamic> json) =>
-      PracticeQuestion(id: json['id'] as String, ask: MathLine.fromJson(json));
+  /// When not empty, the learner picks one of these, and its place in the list is the answer.
+  final List<String> choices;
+
+  factory PracticeQuestion.fromJson(Map<String, dynamic> json) => PracticeQuestion(
+        id: json['id'] as String,
+        ask: MathLine.fromJson(json),
+        choices: ((json['choices'] as List<dynamic>?) ?? const []).cast<String>(),
+      );
 }
 
 /// What the server says about an answer. It is checked by code, with exact arithmetic.
@@ -524,6 +545,67 @@ class LessonWorld {
         thanks: json['thanks'] as String? ?? 'בדיוק אותו דבר. תודה!',
         greeting: json['greeting'] as String? ?? 'טוב לראות אותך.',
         decor: json['decor'] as String? ?? '✨⭐🎈',
+      );
+}
+
+/// Someone who lives in the learner's world, and greets and asks.
+class GuidePerson {
+  const GuidePerson({required this.name, required this.role, required this.emoji});
+
+  final String name;
+  final String role;
+  final String emoji;
+
+  factory GuidePerson.fromJson(Map<String, dynamic> json) => GuidePerson(
+        name: json['name'] as String,
+        role: json['role'] as String,
+        emoji: json['emoji'] as String,
+      );
+}
+
+/// An English word from the learner's world.
+class GuideWord {
+  const GuideWord({
+    required this.en,
+    required this.he,
+    required this.emoji,
+    required this.sentence,
+    required this.circle,
+  });
+
+  final String en;
+  final String he;
+  final String emoji;
+  final String sentence;
+
+  /// 1 is the heart of the world, 3 the wide world.
+  final int circle;
+
+  factory GuideWord.fromJson(Map<String, dynamic> json) => GuideWord(
+        en: json['en'] as String,
+        he: json['he'] as String,
+        emoji: json['emoji'] as String,
+        sentence: json['sentence'] as String,
+        circle: json['circle'] as int,
+      );
+}
+
+/// The people of the learner's world, and the English words of the circles that are open to them.
+class WorldGuide {
+  const WorldGuide({required this.people, required this.words, required this.openCircle});
+
+  static const circles = 3;
+
+  final List<GuidePerson> people;
+  final List<GuideWord> words;
+
+  /// The widest circle open now. Words of wider circles are not sent.
+  final int openCircle;
+
+  factory WorldGuide.fromJson(Map<String, dynamic> json) => WorldGuide(
+        people: (json['people'] as List<dynamic>).map((p) => GuidePerson.fromJson(p as Map<String, dynamic>)).toList(),
+        words: (json['words'] as List<dynamic>).map((w) => GuideWord.fromJson(w as Map<String, dynamic>)).toList(),
+        openCircle: json['openCircle'] as int,
       );
 }
 

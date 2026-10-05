@@ -18,6 +18,7 @@ public sealed class PromptOptions
         ["review-retry"] = "v1",
         ["tutor"] = "v2",
         ["lesson-review"] = "v1",
+        ["world-guide"] = "v1",
     };
 }
 

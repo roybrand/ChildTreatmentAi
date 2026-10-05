@@ -13,6 +13,7 @@ public sealed record LessonView(
 public sealed class LessonService(
     AppDbContext db,
     TutorAgent tutor,
+    WorldGuideAgent guideAgent,
     PromptStore prompts,
     CrisisRules crisisRules,
     TimeProvider time,
@@ -74,6 +75,117 @@ public sealed class LessonService(
             return null;
         var lesson = await db.ChildLessons.FirstOrDefaultAsync(l => l.ChildId == childId && l.LessonId == FractionsMixer, ct);
         return lesson is null ? LessonWorld.Default : ToView(lesson).World;
+    }
+
+    /// <summary>Where the people and the English words of a learner's world are kept, beside their lessons.</summary>
+    public const string WorldGuideId = "world-guide";
+
+    /// <summary>The practice records of a circle of words are kept under this name and the circle's number.</summary>
+    public const string WordsPrefix = "en-words-";
+
+    /// <summary>How many words of a circle a learner gets on their own before the next circle opens.</summary>
+    public const int ToOpenNextCircle = 8;
+
+    /// <summary>
+    /// The people and the English words of the learner's world. Written once and kept; the first time, for
+    /// a learner with interests on file, this asks the model. Otherwise the built-in guide is used.
+    /// </summary>
+    /// <returns>Null when the child does not exist in the current family.</returns>
+    public async Task<WorldGuide?> GuideAsync(Guid childId, CancellationToken ct = default)
+    {
+        var child = await db.Children.FirstOrDefaultAsync(c => c.Id == childId, ct);
+        if (child is null)
+            return null;
+
+        var version = prompts.Get(WorldGuideAgent.AgentName).Version;
+        var stored = await db.ChildLessons.FirstOrDefaultAsync(l => l.ChildId == childId && l.LessonId == WorldGuideId, ct);
+        var hasInterests = await HasInterestsAsync(childId, ct);
+        // Written again only when it was never asked for and now can be, or when the prompt has a new version.
+        var stale = stored is null ||
+                    (stored.FromTutor && stored.PromptVersion != version) ||
+                    (stored is { FromTutor: false, PromptVersion: null } && hasInterests);
+        if (!stale)
+            return stored!.FromTutor ? JsonSerializer.Deserialize<WorldGuide>(stored.World, Json)! : WorldGuide.Default;
+
+        var now = time.GetUtcNow();
+        WorldGuide guide = WorldGuide.Default;
+        var fromModel = false;
+        string? promptVersion = null;
+        if (hasInterests)
+        {
+            promptVersion = version;
+            var names = new Pseudonymizer(child.Nickname);
+            var interests = await db.ProfileItems
+                .Where(i => i.ChildId == childId && i.Status == ProfileItemStatus.Confirmed &&
+                            i.Section == ProfileSection.StrengthsAndInterests)
+                .OrderBy(i => i.CreatedAt).ToListAsync(ct);
+            var context = new TutorContext
+            {
+                Age = child.AgeIn(now.Year),
+                Interests = interests.Select(i => names.Hide(i.Text)).ToList(),
+            };
+            try
+            {
+                // The people and the words belong to the world of the lessons, so that world is settled first.
+                var world = (await GetAsync(childId, FractionsMixer, ct: ct))!.World;
+                var (written, reason) = await guideAgent.BuildAsync(context, world, ct);
+                if (written is not null)
+                {
+                    (guide, fromModel) = (written, true);
+                }
+                else
+                {
+                    logger.LogWarning("The world guide was not used: {Reason}", reason);
+                    db.SafetyEvents.Add(new SafetyEvent
+                    {
+                        ChildId = childId,
+                        Source = SafetySource.LessonOutput,
+                        Category = "guide_withheld",
+                        RulesVersion = crisisRules.Version,
+                        CreatedAt = now,
+                    });
+                }
+            }
+            catch (LlmUnavailableException ex)
+            {
+                // The built-in guide is used now, and the model is asked again next time.
+                logger.LogWarning(ex, "The world guide could not be written");
+                promptVersion = null;
+            }
+        }
+
+        if (stored is null)
+        {
+            stored = new ChildLesson { Id = Guid.NewGuid(), ChildId = childId, LessonId = WorldGuideId, CreatedAt = now };
+            db.ChildLessons.Add(stored);
+        }
+        stored.World = JsonSerializer.Serialize(guide, Json);
+        stored.FromTutor = fromModel;
+        stored.PromptVersion = promptVersion;
+        await db.SaveChangesAsync(ct);
+        return guide;
+    }
+
+    /// <summary>
+    /// The widest circle of words open to the learner. A circle opens when the one before it has settled:
+    /// enough words got without help, and the latest ones going well. A circle the learner has already
+    /// played in stays open whatever happens later, and none of this is shown to the learner as a score.
+    /// </summary>
+    public async Task<int> OpenCircleAsync(Guid childId, CancellationToken ct = default)
+    {
+        var records = await db.PracticeRecords
+            .Where(p => p.ChildId == childId && p.SubtopicId.StartsWith(WordsPrefix))
+            .ToListAsync(ct);
+        var progress = PracticeProgress.Of(records, time.GetUtcNow()).ToDictionary(p => p.SubtopicId);
+        var open = 1;
+        while (open < WorldGuide.Circles &&
+               progress.TryGetValue($"{WordsPrefix}{open}", out var circle) &&
+               circle.GotIt >= ToOpenNextCircle && !circle.ComeBack)
+            open++;
+        // Nothing that was opened is closed again.
+        while (open < WorldGuide.Circles && progress.ContainsKey($"{WordsPrefix}{open + 1}"))
+            open++;
+        return open;
     }
 
     private Task<bool> HasInterestsAsync(Guid childId, CancellationToken ct) =>

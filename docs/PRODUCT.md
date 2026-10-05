@@ -31,7 +31,11 @@ A child's difficulty has many possible causes. The app does not ask which, and h
 | Lessons | Fractions with the Mixer game, set by the Tutor in the learner's world | Built |
 | Practice | The Israeli curriculum for grades 7 to 9 by grade, topic, and sub-topic, with practice questions made and checked by code and a step-by-step solution for each | Built for 42 of 72 sub-topics |
 | Practice | Questions set in the learner's world, word problems, and questions about graphs and shapes | Next |
-| Practice | Grades 1 to 6 and 10 to 12 | Later |
+| Practice | English grammar for grades 5 to 9, as sentences with a gap and words to choose from | Built for 25 of 28 sub-topics |
+| Practice | First English words from the learner's world, in three circles that widen as the learner grows comfortable | Built |
+| Home | Named people of the learner's world who greet and ask, and a word of the day | Built |
+| Practice | English reading, and grammar set in the learner's world | Next |
+| Practice | Grades 1 to 4 and 10 to 12 | Later |
 | Lessons | More game templates: a balance for equations, a hundred bar for percentages | Next |
 | Lessons | Hints and step-by-step explanations when a learner is stuck | Next |
 | Learner | The learner's own sign-in | Next |

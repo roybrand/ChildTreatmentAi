@@ -5,10 +5,11 @@ namespace ChildTreatment.Api.Tests;
 public class CurriculumTests
 {
     private static readonly Curriculum Curriculum =
-        new(Path.Combine(Path.GetDirectoryName(TestSupport.PromptsRoot)!, "curriculum", "math-il.json"));
+        new(Path.Combine(Path.GetDirectoryName(TestSupport.PromptsRoot)!, "curriculum"));
 
+    // Every subject's sub-topics.
     private static IEnumerable<Subtopic> Subtopics =>
-        Curriculum.File.Grades.SelectMany(g => g.Topics).SelectMany(t => t.Subtopics);
+        Curriculum.Files.SelectMany(f => f.Grades).SelectMany(g => g.Topics).SelectMany(t => t.Subtopics);
 
     [Fact]
     public void Each_grade_adds_up_to_the_hours_the_ministry_gives_it()
@@ -34,6 +35,35 @@ public class CurriculumTests
     }
 
     [Fact]
+    public void An_english_question_has_one_right_word_among_its_choices_and_fills_its_own_gap()
+    {
+        Assert.Equal(["mathematics", "english"], Curriculum.Files.Select(f => f.Subject));
+
+        foreach (var generator in EnglishBank.Makers.Keys)
+        {
+            for (var seed = 0; seed < 300; seed++)
+            {
+                var question = QuestionBank.Make(generator, seed);
+                var choices = question.Choices!;
+                Assert.InRange(choices.Count, 2, 4);
+                Assert.Equal(choices.Count, choices.Distinct().Count());
+                Assert.Contains("___", question.Ask.Math);
+
+                // The answer is the place of the right word, and the full sentence in the steps holds that word.
+                var right = choices[(int)question.Answer.Numerator];
+                Assert.Equal(question.Ask.Math!.Replace("___", right), question.Steps[^1].Math);
+                Assert.DoesNotContain("___", question.Steps[^1].Math);
+            }
+        }
+
+        // A choice is checked by its place, like a number.
+        var handed = Curriculum.Questions("en5-be-forms", 3, new Random(2))!;
+        Assert.All(handed, q => Assert.NotNull(q.Choices));
+        var shown = Curriculum.Check(handed[0].Id, "")!;
+        Assert.True(Curriculum.Check(handed[0].Id, shown.Answer)!.Same);
+    }
+
+    [Fact]
     public void A_lesson_named_by_a_sub_topic_is_one_that_exists()
     {
         var lessons = Subtopics.Where(s => s.Lesson is not null).Select(s => s.Lesson!).ToList();
@@ -44,7 +74,8 @@ public class CurriculumTests
     [Fact]
     public void Every_id_is_unique_and_every_named_generator_exists()
     {
-        var ids = Subtopics.Select(s => s.Id).Concat(Curriculum.File.Grades.SelectMany(g => g.Topics).Select(t => t.Id)).ToList();
+        var ids = Subtopics.Select(s => s.Id)
+            .Concat(Curriculum.Files.SelectMany(f => f.Grades).SelectMany(g => g.Topics).Select(t => t.Id)).ToList();
         Assert.Equal(ids.Count, ids.Distinct().Count());
 
         foreach (var subtopic in Subtopics.Where(s => s.Generator is not null))

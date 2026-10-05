@@ -15,7 +15,8 @@ public sealed record GradeCurriculum(int Grade, string Name, int Hours, IReadOnl
 public sealed record CurriculumFile(string Subject, string Country, CurriculumSource Source, IReadOnlyList<GradeCurriculum> Grades);
 
 /// <summary>A practice question as the app receives it. The id is enough to rebuild the question and check an answer.</summary>
-public sealed record PracticeQuestion(string Id, string Text, string? Math);
+/// <param name="Choices">When given, the learner picks one of these and sends back its place in the list, from 0.</param>
+public sealed record PracticeQuestion(string Id, string Text, string? Math, IReadOnlyList<string>? Choices = null);
 
 public sealed record PracticeCheck(
     bool Same, string Answer, IReadOnlyList<Line> Steps, Visual? Visual, IReadOnlyList<Line>? More);
@@ -31,17 +32,26 @@ public sealed class Curriculum
 
     private readonly Dictionary<string, Subtopic> _subtopics;
 
-    public CurriculumFile File { get; }
+    /// <summary>One file per subject, mathematics first.</summary>
+    public IReadOnlyList<CurriculumFile> Files { get; }
 
-    public Curriculum(string path)
+    /// <summary>The mathematics curriculum.</summary>
+    public CurriculumFile File => Files[0];
+
+    /// <param name="folder">The folder that holds the curriculum files, one per subject.</param>
+    public Curriculum(string folder)
     {
-        File = JsonSerializer.Deserialize<CurriculumFile>(System.IO.File.ReadAllText(path), Json)
-               ?? throw new InvalidOperationException("The curriculum file is empty.");
-        _subtopics = File.Grades.SelectMany(g => g.Topics).SelectMany(t => t.Subtopics).ToDictionary(s => s.Id);
+        Files = Directory.GetFiles(folder, "*.json")
+            .Select(path => JsonSerializer.Deserialize<CurriculumFile>(System.IO.File.ReadAllText(path), Json)
+                            ?? throw new InvalidOperationException($"The curriculum file {path} is empty."))
+            .OrderBy(file => file.Subject == "mathematics" ? 0 : 1).ThenBy(file => file.Subject)
+            .ToList();
+        _subtopics = Files.SelectMany(f => f.Grades).SelectMany(g => g.Topics).SelectMany(t => t.Subtopics)
+            .ToDictionary(s => s.Id);
     }
 
-    /// <summary>The curriculum file shipped with the application.</summary>
-    public static Curriculum Load() => new(Path.Combine(AppContext.BaseDirectory, "curriculum", "math-il.json"));
+    /// <summary>The curriculum files shipped with the application.</summary>
+    public static Curriculum Load() => new(Path.Combine(AppContext.BaseDirectory, "curriculum"));
 
     /// <returns>Null when the sub-topic does not exist or has no questions yet.</returns>
     public IReadOnlyList<PracticeQuestion>? Questions(
@@ -59,7 +69,7 @@ public sealed class Curriculum
             var question = QuestionBank.Make(subtopic.Generator, seed, story, easy);
             // An easy question says so in its id, so it is rebuilt as an easy one when its answer is checked.
             if (seen.Add(question.Ask.Text + question.Ask.Math))
-                questions.Add(new PracticeQuestion($"{subtopicId}:{seed}{(easy ? ":e" : "")}", question.Ask.Text, question.Ask.Math));
+                questions.Add(new PracticeQuestion($"{subtopicId}:{seed}{(easy ? ":e" : "")}", question.Ask.Text, question.Ask.Math, question.Choices));
         }
         return questions;
     }

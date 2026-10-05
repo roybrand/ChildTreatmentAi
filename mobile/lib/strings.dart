@@ -196,13 +196,45 @@ class Strings {
   static const treeGrade = 'הכיתה';
   static const treeSubject = 'המקצוע';
   static const subjectMath = 'מתמטיקה';
+  // The subjects the server can send, by its name for each: a symbol and the Hebrew name.
+  static const subjects = {'mathematics': ('➗', subjectMath), 'english': ('🔤', 'אנגלית')};
   // Subjects with no content yet. They are shown so the tree is whole, and marked as coming.
-  static const subjectsComing = [('🔤', 'אנגלית'), ('🔬', 'מדעים')];
+  static const subjectsComing = [('🔬', 'מדעים')];
   static const practiceSoon = 'בקרוב';
-  static const practiceDomains = {'algebra': 'אלגברה', 'number': 'מספרים', 'geometry': 'גאומטריה'};
+  static const practiceDomains = {'algebra': 'אלגברה', 'number': 'מספרים', 'geometry': 'גאומטריה', 'grammar': 'דקדוק'};
   static const practiceAnswerHint = 'התשובה';
   static const practiceCheck = 'בדיקה';
   static const practiceSame = 'זו התשובה.';
+  // What the character says when an answer fits. Short, varied, and with no form that carries a gender.
+  static const practiceCheers = [
+    'בדיוק ככה.',
+    'יצא מדויק.',
+    'תודה, זה עזר לי.',
+    'מעולה, אפשר להמשיך.',
+    'זה מסתדר בדיוק.',
+    'עכשיו זה ברור.',
+    'יופי, זה מה שחיפשנו.',
+  ];
+  // The English words of the learner's world, in three circles that widen.
+  static const wordsTitle = 'המילים של העולם שלי';
+  static const wordsWhy = 'אנגלית שמתחילה מהעולם שלך, ומתרחבת לאט לאט.';
+  static const wordsCircles = ['הלב של העולם', 'מסביב לעולם', 'העולם הרחב'];
+  static const wordsPlay = 'לשחק';
+  static const wordsLater = 'ייפתח כשהמילים של המעגל הקודם ירגישו מוכרות. אין מה למהר.';
+  static String wordsNewCircle(String name) => 'נפתח לך מעגל חדש של מילים: $name!';
+  static const wordOfDay = 'המילה של היום';
+  static const wordOfDayPlay = 'לשחק במילים';
+  static String personCaption(String name, String role) => '$name · $role';
+  // What a person of the world says when the learner comes in. A different one each day.
+  static const welcomeLines = [
+    'טוב לראות אותך!',
+    'איזה כיף שבאת!',
+    'שמרתי לך משהו להיום.',
+    'יש היום משהו חדש.',
+    'בדיוק בזמן. מתחילים?',
+  ];
+  static String parentWords(int circle) => 'מילים באנגלית, מעגל $circle';
+  static const parentWordsGroup = 'אנגלית · המילים של העולם';
   static const practiceNotYet = 'זו עוד לא התשובה. אפשר לנסות שוב, או לראות איך פותרים.';
   static const practiceShowHow = 'להראות לי איך';
   static const practiceEasier = 'שאלה דומה, עם מספרים קטנים יותר.';

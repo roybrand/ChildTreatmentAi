@@ -55,6 +55,20 @@ Figure figureFor(String world) {
   return cast[hash % cast.length];
 }
 
+/// The cast member who plays one of the people of a world. The people of one world get different
+/// figures, and where a person's symbol says woman or man, a figure with hair to match.
+Figure figureOf(String world, int person, String symbol) {
+  const womanly = [0x1F469, 0x1F467, 0x1F475, 0x2640, 0x1F478];
+  const manly = [0x1F468, 0x1F466, 0x1F474, 0x2642, 0x1F9D4];
+  final runes = symbol.runes.toList();
+  final fitting = runes.any(womanly.contains)
+      ? cast.where((f) => f.style == Hair.long || f.style == Hair.bob || f.style == Hair.bun).toList()
+      : runes.any(manly.contains)
+          ? cast.where((f) => f.style == Hair.short || f.style == Hair.curly || f.style == Hair.cap).toList()
+          : cast;
+  return fitting[(cast.indexOf(figureFor(world)) + person) % fitting.length];
+}
+
 /// A cartoon figure that is alive: it blinks, and its face changes with its mood.
 class Cartoon extends StatefulWidget {
   const Cartoon({super.key, required this.figure, this.mood = Mood.asking, this.size = 120});

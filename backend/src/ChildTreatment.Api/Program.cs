@@ -64,6 +64,7 @@ builder.Services.AddScoped<WeeklySummaryAgent>();
 builder.Services.AddScoped<WeeklySummaryService>();
 builder.Services.AddSingleton(Curriculum.Load());
 builder.Services.AddScoped<TutorAgent>();
+builder.Services.AddScoped<WorldGuideAgent>();
 builder.Services.AddScoped<LessonService>();
 
 var app = builder.Build();

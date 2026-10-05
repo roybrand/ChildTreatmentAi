@@ -33,14 +33,21 @@ class _ParentScreenState extends State<ParentScreen> {
 
   Future<void> _load() async {
     try {
-      final grades = await widget.api.curriculum();
+      final subjects = await widget.api.curriculum();
       final progress = await widget.api.practiceProgress(widget.child.id);
       if (mounted) {
         setState(() {
           _names = {
-            for (final grade in grades)
-              for (final topic in grade.topics)
-                for (final subtopic in topic.subtopics) subtopic.id: (subtopic.title, '${grade.name} · ${topic.title}'),
+            for (var circle = 1; circle <= WorldGuide.circles; circle++)
+              'en-words-$circle': (Strings.parentWords(circle), Strings.parentWordsGroup),
+            for (final subject in subjects)
+              for (final grade in subject.grades)
+                for (final topic in grade.topics)
+                  for (final subtopic in topic.subtopics)
+                    subtopic.id: (
+                      subtopic.title,
+                      '${Strings.subjects[subject.subject]?.$2 ?? subject.subject} · ${grade.name} · ${topic.title}',
+                    ),
           };
           _progress = progress;
         });

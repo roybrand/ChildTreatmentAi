@@ -17,7 +17,14 @@ class WelcomeHeader extends StatefulWidget {
     required this.child,
     required this.world,
     required this.onWorldChanged,
+    this.guide,
   });
+
+  /// What day it is. Tests set it, so the person and the word of the day are known.
+  static DateTime Function() today = DateTime.now;
+
+  /// The people and words of the world, or null while they are being read.
+  final WorldGuide? guide;
 
   final ApiClient api;
   final Child child;
@@ -94,6 +101,13 @@ class _WelcomeHeaderState extends State<WelcomeHeader> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final world = widget.world;
+    final guide = widget.guide;
+    // The day picks who greets, what they say, and which word is shown.
+    final now = WelcomeHeader.today();
+    final day = DateTime.utc(now.year, now.month, now.day).millisecondsSinceEpoch ~/ Duration.millisecondsPerDay;
+    final person = guide == null || guide.people.isEmpty ? null : guide.people[day % guide.people.length];
+    final line = day % (Strings.welcomeLines.length + 1);
+    final word = guide == null || guide.words.isEmpty ? null : guide.words[day % guide.words.length];
 
     return Column(
       children: [
@@ -103,13 +117,56 @@ class _WelcomeHeaderState extends State<WelcomeHeader> {
         else ...[
           Text('${world.emoji} ${world.world}', style: theme.textTheme.headlineMedium, textAlign: TextAlign.center),
           const SizedBox(height: 16),
-          // The figure who lives in this world greets the learner by name.
-          Character(
-            face: world.customer,
-            figure: figureFor(world.world),
-            says: '${widget.child.nickname}, ${world.greeting}',
-            lively: true,
-          ),
+          // Someone who lives in this world greets the learner by name: a different person, saying
+          // something different, each day. Until the people are known, the world's own figure does.
+          if (person == null)
+            Character(
+              face: world.customer,
+              figure: figureFor(world.world),
+              says: '${widget.child.nickname}, ${world.greeting}',
+              lively: true,
+            )
+          else
+            Character(
+              face: person.emoji,
+              figure: figureOf(world.world, day % guide!.people.length, person.emoji),
+              name: Strings.personCaption(person.name, person.role),
+              says: '${widget.child.nickname}, ${line == 0 ? world.greeting : Strings.welcomeLines[line - 1]}',
+              lively: true,
+            ),
+          if (word != null) ...[
+            const SizedBox(height: 16),
+            // One word a day from the learner's world. Nothing is counted and no day can be missed.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 14, 20, 16),
+                  child: Column(
+                    children: [
+                      Text(
+                        Strings.wordOfDay,
+                        style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.primary),
+                      ),
+                      const SizedBox(height: 6),
+                      Bob(child: Text(word.emoji, style: const TextStyle(fontSize: 52))),
+                      Text(word.en, textDirection: TextDirection.ltr, style: theme.textTheme.headlineMedium),
+                      Text(word.he, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: 6),
+                      Text(
+                        word.sentence,
+                        textDirection: TextDirection.ltr,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyLarge?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
         if (_hasInterests == false) ...[
           const SizedBox(height: 20),

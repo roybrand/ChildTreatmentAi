@@ -180,10 +180,9 @@ class ApiClient {
 
   // ---- Practice by grade and topic ----
 
-  Future<List<CurriculumGrade>> curriculum() async {
-    final json = await _send('GET', '/api/curriculum') as Map<String, dynamic>;
-    return _list(json['grades'], CurriculumGrade.fromJson);
-  }
+  /// The curriculum of every subject, mathematics first.
+  Future<List<CurriculumSubject>> curriculum() async =>
+      _list(await _send('GET', '/api/curriculum'), CurriculumSubject.fromJson);
 
   /// Questions for a sub-topic, told as stories from this learner's world where a question has a story.
   /// [easy] asks for questions with smaller numbers, for after one the learner did not get.
@@ -203,6 +202,20 @@ class ApiClient {
 
   Future<PracticeCheck> checkAnswer(String questionId, String answer) async {
     final json = await _send('POST', '/api/practice/check', body: {'questionId': questionId, 'answer': answer});
+    return PracticeCheck.fromJson(json as Map<String, dynamic>);
+  }
+
+  /// The people and the English words of the learner's world. The first time, this asks the model.
+  Future<WorldGuide> worldGuide(String childId) async =>
+      WorldGuide.fromJson(await _send('GET', '/api/children/$childId/world-guide') as Map<String, dynamic>);
+
+  /// Questions on the words of one circle of the learner's world.
+  Future<List<PracticeQuestion>> words(String childId, int circle, {int count = 6}) async =>
+      _list(await _send('GET', '/api/children/$childId/words/$circle?count=$count'), PracticeQuestion.fromJson);
+
+  Future<PracticeCheck> checkWord(String childId, String questionId, String answer) async {
+    final json = await _send('POST', '/api/children/$childId/words/check',
+        body: {'questionId': questionId, 'answer': answer});
     return PracticeCheck.fromJson(json as Map<String, dynamic>);
   }
 

@@ -146,6 +146,8 @@ How this is built:
 
 Mathematics is the first subject.
 
+**The world guide.** A second prompt of the Tutor, `world-guide`, writes the people and the first English words of a learner's world: three named people with a role, and eighteen words in three circles of six, from the heart of the world out to everyday life. It reads the learner's age, their confirmed interests, and the world's name and things, and never the learner's name. Its output is checked by code and reviewed by the Safety Guard under the lesson rules; when either fails, a built-in guide is used. It is written once per learner and kept. The questions about the words are made and checked by code. It has no scenario set yet.
+
 **Stays on topic.** The Tutor teaches. If the young person brings up distress, it responds with one warm sentence, offers the calming tools, and lets the Safety Guard decide whether more is needed. It does not counsel.
 
 **Must never.** Do the child's graded schoolwork for them, shame or pressure, compare the child with others, or hold a conversation about feelings beyond the handover described above.

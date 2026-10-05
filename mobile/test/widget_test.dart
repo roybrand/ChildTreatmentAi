@@ -6,6 +6,7 @@ import 'package:child_treatment/api/token_store.dart';
 import 'package:child_treatment/app_state.dart';
 import 'package:child_treatment/main.dart';
 import 'package:child_treatment/screens/crisis_screen.dart';
+import 'package:child_treatment/screens/lessons_screen.dart';
 import 'package:child_treatment/strings.dart';
 import 'package:child_treatment/widgets/scene.dart';
 import 'package:flutter/foundation.dart';
@@ -23,6 +24,9 @@ class FakeServer {
   final profileItems = <Map<String, dynamic>>[];
   int lessonStep = 0;
   final practiceResults = <bool>[];
+
+  /// How each question on the words of the world went.
+  final wordResults = <bool>[];
 
   /// Whether the parent coaching side is switched on. The real server has it off.
   bool coaching = true;
@@ -70,7 +74,27 @@ class FakeServer {
       return _json(200, coachReply);
     }
     if (path == '/api/curriculum') {
-      return _json(200, {
+      return _json(200, [
+        {
+          'subject': 'english',
+          'grades': [
+            {
+              'grade': 7,
+              'name': 'כיתה ז',
+              'topics': [
+                {
+                  'title': 'Present Simple',
+                  'domain': 'grammar',
+                  'subtopics': [
+                    {'id': 'e1', 'title': 'am, is, are', 'generator': 'en-to-be'},
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        {
+          'subject': 'mathematics',
         'grades': [
           {
             'grade': 7,
@@ -88,11 +112,48 @@ class FakeServer {
             ],
           },
         ],
+        },
+      ].reversed.toList());
+    }
+    if (path.endsWith('/world-guide')) {
+      // The second circle opens once a word was got.
+      final open = wordResults.contains(true) ? 2 : 1;
+      return _json(200, {
+        'people': [
+          {'name': 'מיכל', 'role': 'לקוחה קבועה', 'emoji': '👩'},
+          {'name': 'עומר', 'role': 'השליח', 'emoji': '🧑'},
+        ],
+        'words': [
+          {'en': 'lipstick', 'he': 'שפתון', 'emoji': '💄', 'sentence': 'The lipstick is on the table.', 'circle': 1},
+          {'en': 'mirror', 'he': 'מראה', 'emoji': '🪞', 'sentence': 'The mirror is on the wall.', 'circle': 1},
+          if (open == 2)
+            {'en': 'shop', 'he': 'חנות', 'emoji': '🏪', 'sentence': 'The shop is open today.', 'circle': 2},
+        ],
+        'openCircle': open,
       });
+    }
+    if (path.endsWith('/words/check')) {
+      return _json(200, {
+        'same': body!['answer'] == '1',
+        'answer': 'lipstick',
+        'steps': [
+          {'text': '💄  שפתון', 'math': 'lipstick'},
+        ],
+      });
+    }
+    if (path.endsWith('/words/1')) {
+      return _json(200, [
+        {'id': 'en-words-1:7', 'text': 'איך אומרים את זה באנגלית?', 'math': '💄', 'choices': ['mirror', 'lipstick', 'brush']},
+      ]);
+    }
+    if (path.endsWith('/practice/en-words-1/result')) {
+      wordResults.add(body!['gotIt'] as bool);
+      return _json(204, null);
     }
     if (path == '/api/practice/check') {
       return _json(200, {
-        'same': body!['answer'] == '3',
+        // The mathematics question is answered by 3. The English one by its second choice, 'is'.
+        'same': body!['questionId'] == 'e1:1' ? body['answer'] == '1' : body['answer'] == '3',
         'answer': '3',
         'steps': [
           {'text': 'מחסרים 1 משני האגפים.', 'math': '2·x = 6'},
@@ -101,6 +162,14 @@ class FakeServer {
           {'text': 'אפשר גם לנסות מספרים.', 'math': '2·3 + 1 = 7'},
         ],
       });
+    }
+    if (path.endsWith('/practice/e1')) {
+      return _json(200, [
+        {'id': 'e1:1', 'text': 'בחרו את המילה שמשלימה את המשפט.', 'math': 'She ___ happy.', 'choices': ['am', 'is', 'are']},
+      ]);
+    }
+    if (path.endsWith('/practice/e1/result')) {
+      return _json(204, null);
     }
     if (path.endsWith('/practice/s1/result')) {
       practiceResults.add(body!['gotIt'] as bool);
@@ -454,6 +523,79 @@ void main() {
     expect(find.text(Strings.parentTitle('נועה')), findsOneWidget);
     expect(find.textContaining(Strings.parentLine(2, 1, '4.10.2026')), findsOneWidget);
     expect(find.text('פתרון משוואות'), findsOneWidget);
+  });
+
+  testWidgets('english is a subject of its own, and its questions are answered by choosing a word', (tester) async {
+    tester.view.devicePixelRatio = 1;
+    // Tall enough for the welcome, the words of the world, and the grammar topics under them.
+    tester.view.physicalSize = const Size(412, 2400);
+    addTearDown(tester.view.reset);
+    await pumpApp(tester, ready: true, coaching: false);
+
+    // Mathematics is open first. Choosing English shows its own topics.
+    expect(find.text('פתרון משוואות ושאלות מילוליות'), findsOneWidget);
+    await tester.tap(find.text('אנגלית'));
+    await tester.pumpAndSettle();
+    expect(find.text('פתרון משוואות ושאלות מילוליות'), findsNothing);
+    expect(find.text('am, is, are'), findsOneWidget);
+
+    await tester.tap(find.text(Strings.practiceGo));
+    await tester.pumpAndSettle();
+    expect(find.text('She ___ happy.'), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+
+    // A word that does not fit is not marked wrong, and another can be chosen.
+    await tester.tap(find.text('are'));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.practiceNotYet), findsOneWidget);
+    await tester.tap(find.text('is'));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.practiceSame), findsOneWidget);
+  });
+
+  testWidgets('someone from the world greets with a word of the day, and its words open in widening circles',
+      (tester) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(412, 2200);
+    addTearDown(tester.view.reset);
+    // The first day of the count: the first person greets, and the first word is shown.
+    WelcomeHeader.today = () => DateTime.utc(1970, 1, 1);
+    addTearDown(() => WelcomeHeader.today = DateTime.now);
+    final server = await pumpApp(tester, ready: true, coaching: false);
+
+    expect(find.text(Strings.personCaption('מיכל', 'לקוחה קבועה')), findsOneWidget);
+    expect(find.text(Strings.wordOfDay), findsOneWidget);
+    expect(find.text('lipstick'), findsOneWidget);
+    expect(find.text('The lipstick is on the table.'), findsOneWidget);
+
+    // Under English, before any grammar, are the words of the learner's own world. Only the heart is open.
+    await tester.tap(find.text('אנגלית'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining(Strings.wordsTitle), findsOneWidget);
+    expect(find.text(Strings.wordsLater), findsNWidgets(2));
+
+    await tester.tap(find.byKey(const ValueKey('words-1')));
+    await tester.pumpAndSettle();
+    // A person of the world asks, by name.
+    expect(find.text(Strings.personCaption('מיכל', 'לקוחה קבועה')), findsOneWidget);
+    expect(find.text('איך אומרים את זה באנגלית?'), findsOneWidget);
+
+    await tester.tap(find.text('lipstick'));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.practiceSame), findsOneWidget);
+    await tester.ensureVisible(find.text(Strings.practiceNextQuestion));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text(Strings.practiceNextQuestion));
+    await tester.pumpAndSettle();
+
+    // The game is recorded, and the wider circle that opened is told as news, not as a score.
+    expect(server.wordResults, [true]);
+    expect(find.text(Strings.wordsNewCircle(Strings.wordsCircles[1])), findsOneWidget);
+
+    await tester.tap(find.byType(BackButton));
+    await tester.pumpAndSettle();
+    expect(find.text(Strings.wordsLater), findsOneWidget);
+    expect(find.byKey(const ValueKey('words-2')), findsOneWidget);
   });
 
   testWidgets('the tutor opens a lesson from the lessons list', (tester) async {

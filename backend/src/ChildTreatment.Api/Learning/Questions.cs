@@ -82,8 +82,10 @@ public sealed record Story(string Place, IReadOnlyList<string> Things)
 
 /// <summary>One question. Every number in it, its answer, and its explanation are made by code.</summary>
 /// <param name="More">A second explanation, told another way, for a learner the first one did not reach.</param>
+/// <param name="Choices">When given, the learner picks one of these, and the answer is its place in the list, from 0.</param>
 public sealed record Question(
-    Line Ask, Rational Answer, IReadOnlyList<Line> Steps, Visual? Visual = null, IReadOnlyList<Line>? More = null);
+    Line Ask, Rational Answer, IReadOnlyList<Line> Steps, Visual? Visual = null, IReadOnlyList<Line>? More = null,
+    IReadOnlyList<string>? Choices = null);
 
 /// <summary>
 /// A picture of the solution, as numbers for the app to draw. The drawing is the app's; what it shows
@@ -102,13 +104,16 @@ public static class QuestionBank
 {
     private const string M = "−";
 
-    public static IReadOnlyCollection<string> Generators => Makers.Keys;
+    /// <summary>Every generator: the mathematics ones here, and the English ones in <see cref="EnglishBank"/>.</summary>
+    public static IReadOnlyCollection<string> Generators => [.. Makers.Keys, .. EnglishBank.Makers.Keys];
 
     /// <param name="story">When given, a question that has a story is told in this world. The numbers, the
     /// answer, and the steps are the same either way, so an answer is checked without knowing the world.</param>
     /// <param name="easy">Smaller numbers, for the question that follows one the learner did not get.</param>
     public static Question Make(string generator, int seed, Story? story = null, bool easy = false) =>
-        Makers[generator](easy ? new EasyRandom(seed) : new Random(seed), story);
+        EnglishBank.Makers.TryGetValue(generator, out var english)
+            ? english(new Random(seed))
+            : Makers[generator](easy ? new EasyRandom(seed) : new Random(seed), story);
 
     /// <summary>Marks a question as an easy one. Every range a generator draws from is narrowed to its low end.</summary>
     private sealed class EasyRandom(int seed) : Random(seed);

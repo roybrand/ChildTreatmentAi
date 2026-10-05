@@ -2,6 +2,24 @@
 
 Newest first. Each entry records what was decided and why. To reverse a decision, add a new entry; do not edit the old one.
 
+## 2026-10-05: English starts from the learner's world and widens in circles, and the world has named people
+
+A learner's first English words come from the world they love, in three circles: the heart of the world, what is around it, and everyday life. A wider circle opens when the one before it has settled, and never closes again. The world also gets three named people, who take turns asking questions in every subject and greet the learner on the home page, a different one each day, with a word of the day. The model writes the people and the words once per learner; code makes and checks every question about them.
+
+**Why:** founder's request: English from the learner's world but not only from it, widening as they grow comfortable, with characters from that world, so that the learner wants to open the app. Words from a loved world are the least frightening way into a foreign language, and circles let the vocabulary reach ordinary life without a list that feels like school.
+
+**What we chose not to do:** streaks, points, daily goals, or anything a learner can lose by staying away. These bring people back through worry, which is the wrong pull for learners who already fear failing. What changes each day is only who greets and which word is shown. A circle that is not open is shown without a lock or a count.
+
+**Cost:** one more model call and one review per learner, once.
+
+## 2026-10-05: English is the second subject, starting with grammar made by code
+
+English is added beside mathematics, for the same grades. It starts with grammar, following the grammatical structures in the Ministry of Education's English Curriculum 2020. A question is a sentence with a gap and a few words to choose from. Code builds the sentence from word lists whose forms are written out by hand, so the English is correct and the answer is known without a model.
+
+**Why:** founder's decision to add English to the classes. Grammar comes first because it can be made and checked by code, as the mathematics is, at no cost per question.
+
+**Cost of this choice:** grammar drills are the least of what learning a language needs, and the least like a game. Vocabulary and reading in the learner's own world need the Tutor to supply the words, which means model calls and their checks.
+
 ## 2026-10-04: The learner's world is wide, and questions are real situations in it
 
 The world a lesson and its questions are set in is the whole field a learner's interest belongs to: beauty, with its nails, hair, make-up, and clothes, and not a nail polish stand. The Tutor names several different things sold in that world, and each story question uses one of them. A question's story is a situation someone running such a place would really meet: a delivery, an order, a discount, tips. When a first explanation does not land, the second one uses a different example from the same world of work.

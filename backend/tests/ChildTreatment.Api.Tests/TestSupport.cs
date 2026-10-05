@@ -91,6 +91,13 @@ public static class TestSupport
             new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance), NullLogger<TutorAgent>.Instance);
     }
 
+    public static WorldGuideAgent Guide(FakeLlm llm)
+    {
+        var prompts = Prompts();
+        return new WorldGuideAgent(llm, prompts,
+            new SafetyReviewer(llm, prompts, NullLogger<SafetyReviewer>.Instance), NullLogger<WorldGuideAgent>.Instance);
+    }
+
     public static readonly FieldProtector Protector = new(new byte[32]);
 
     /// <summary>A context on a named in-memory database, acting for the given family.</summary>

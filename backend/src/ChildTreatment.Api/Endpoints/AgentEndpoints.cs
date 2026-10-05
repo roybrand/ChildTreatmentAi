@@ -25,7 +25,7 @@ public static class AgentEndpoints
         // The skill map and practice questions. No model is involved: questions and checks are code.
         var learning = app.MapGroup("/api").RequireAuthorization().RequireFamily();
 
-        learning.MapGet("/curriculum", (Curriculum curriculum) => curriculum.File);
+        learning.MapGet("/curriculum", (Curriculum curriculum) => curriculum.Files);
 
         learning.MapGet("/practice/{subtopicId}", (string subtopicId, int? count, Curriculum curriculum) =>
         {
@@ -109,7 +109,9 @@ public static class AgentEndpoints
         child.MapPost("/practice/{subtopicId}/result", async (
             Guid childId, string subtopicId, PracticeOutcome outcome, Curriculum curriculum, AppDbContext db, TimeProvider time) =>
         {
-            if (!curriculum.HasQuestions(subtopicId) || !await db.Children.AnyAsync(c => c.Id == childId))
+            // A circle of world words is recorded like a sub-topic, under its own name.
+            var known = curriculum.HasQuestions(subtopicId) || subtopicId.StartsWith(LessonService.WordsPrefix, StringComparison.Ordinal);
+            if (!known || !await db.Children.AnyAsync(c => c.Id == childId))
                 return Results.NotFound();
 
             db.PracticeRecords.Add(new PracticeRecord
@@ -122,6 +124,50 @@ public static class AgentEndpoints
             });
             await db.SaveChangesAsync();
             return Results.NoContent();
+        });
+
+        // The people and the English words of the learner's world. Words of circles not open yet are left out.
+        child.MapGet("/world-guide", async (Guid childId, LessonService lessons, CancellationToken ct) =>
+        {
+            var guide = await lessons.GuideAsync(childId, ct);
+            if (guide is null)
+                return Results.NotFound();
+            var open = await lessons.OpenCircleAsync(childId, ct);
+            return Results.Ok(new { guide.People, Words = guide.Words.Where(w => w.Circle <= open), OpenCircle = open });
+        });
+
+        child.MapGet("/words/{circle:int}", async (
+            Guid childId, int circle, int? count, LessonService lessons, CancellationToken ct) =>
+        {
+            var guide = await lessons.GuideAsync(childId, ct);
+            if (guide is null || circle < 1 || circle > await lessons.OpenCircleAsync(childId, ct))
+                return Results.NotFound();
+
+            var questions = new List<PracticeQuestion>();
+            var seen = new HashSet<string>();
+            for (var attempt = 0; questions.Count < Math.Clamp(count ?? 6, 1, 10) && attempt < 60; attempt++)
+            {
+                var seed = Random.Shared.Next();
+                var question = WordQuestions.Make(guide, circle, seed);
+                if (seen.Add(question.Ask.Text + question.Ask.Math))
+                    questions.Add(new PracticeQuestion(
+                        $"{LessonService.WordsPrefix}{circle}:{seed}", question.Ask.Text, question.Ask.Math, question.Choices));
+            }
+            return Results.Ok(questions);
+        });
+
+        child.MapPost("/words/check", async (Guid childId, PracticeAnswer answer, LessonService lessons, CancellationToken ct) =>
+        {
+            var guide = await lessons.GuideAsync(childId, ct);
+            var parts = (answer.QuestionId ?? "").Split(':');
+            if (guide is null || parts.Length != 2 || !parts[0].StartsWith(LessonService.WordsPrefix, StringComparison.Ordinal) ||
+                !int.TryParse(parts[0][LessonService.WordsPrefix.Length..], out var circle) ||
+                circle < 1 || circle > WorldGuide.Circles || !int.TryParse(parts[1], out var seed))
+                return Results.NotFound();
+
+            var question = WordQuestions.Make(guide, circle, seed);
+            var same = Rational.TryParse(answer.Answer, out var given) && given == question.Answer;
+            return Results.Ok(new PracticeCheck(same, question.Choices![(int)question.Answer.Numerator], question.Steps, null, null));
         });
 
         child.MapGet("/practice-progress", async (Guid childId, AppDbContext db, TimeProvider time) =>

@@ -175,6 +175,7 @@ class Character extends StatelessWidget {
     required this.face,
     required this.says,
     this.figure,
+    this.name,
     this.lively = false,
     this.size = 112,
   });
@@ -182,6 +183,9 @@ class Character extends StatelessWidget {
   /// The cartoon figure to draw. Without one, the emoji [face] is shown.
   final Figure? figure;
   final String face;
+
+  /// Who this is, written under the figure. Left out for a figure with no name.
+  final String? name;
   final String says;
   final bool lively;
   final double size;
@@ -213,6 +217,14 @@ class Character extends StatelessWidget {
                   ),
           ),
         ),
+        if (name != null) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(color: scheme.primaryContainer, borderRadius: BorderRadius.circular(12)),
+            child: Text(name!, style: theme.textTheme.labelLarge?.copyWith(color: scheme.onPrimaryContainer)),
+          ),
+        ],
         const SizedBox(height: 12),
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
